@@ -3387,8 +3387,8 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ],
         ),
-        backgroundColor: AppTheme.orange,
-        foregroundColor: Colors.white,
+        backgroundColor: AppTheme.velluto,
+        foregroundColor: AppTheme.panna,
         actions: [
           PopupMenuButton<_ChatMenuAction>(
             onSelected: _onMenuSelected,

@@ -118,7 +118,7 @@ class _LandingPageState extends State<LandingPage> {
                             TextSpan(text: 'Tu offri,\n'),
                             TextSpan(
                               text: 'io approfitto.',
-                              style: TextStyle(color: AppTheme.spritz),
+                              style: TextStyle(color: AppTheme.lampone),
                             ),
                           ],
                         ),
@@ -256,9 +256,9 @@ class _LandingPageState extends State<LandingPage> {
                       ),
                       if (widget.showLoginButton) ...[
                         const SizedBox(height: 24),
-                        FilledButton(
+                        OutlinedButton(
                           onPressed: _openLogin,
-                          style: FilledButton.styleFrom(
+                          style: OutlinedButton.styleFrom(
                             minimumSize: const Size.fromHeight(56),
                           ),
                           child: const Text('Accedi / Iscriviti'),
@@ -533,8 +533,14 @@ class _LandingInfoCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: highlighted ? AppTheme.spritz : AppTheme.velluto,
+        color: AppTheme.velluto,
         borderRadius: BorderRadius.circular(28),
+        border: highlighted
+            ? Border.all(
+                color: AppTheme.lampone.withValues(alpha: 0.7),
+                width: 1.5,
+              )
+            : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -547,7 +553,7 @@ class _LandingInfoCard extends StatelessWidget {
             title,
             style: textTheme.titleLarge?.copyWith(
               fontSize: highlighted ? 25 : 20,
-              color: highlighted ? AppTheme.onAccent : AppTheme.panna,
+              color: AppTheme.panna,
             ),
           ),
           const SizedBox(height: 6),
@@ -555,7 +561,7 @@ class _LandingInfoCard extends StatelessWidget {
             body,
             style: textTheme.bodyLarge?.copyWith(
               fontWeight: highlighted ? FontWeight.w600 : FontWeight.w500,
-              color: highlighted ? AppTheme.onAccent : AppTheme.lavandaChiara,
+              color: AppTheme.lavandaChiara,
             ),
           ),
         ],

@@ -355,19 +355,20 @@ class _HomeShellState extends State<HomeShell> {
                   content: Row(
                     children: [
                       const Icon(Icons.notifications_active,
-                          color: AppTheme.onAccent, size: 20),
+                          color: AppTheme.limone, size: 20),
                       const SizedBox(width: 12),
                       Expanded(
                           child: Text(message,
                               style: const TextStyle(
+                                  color: AppTheme.panna,
                                   fontWeight: FontWeight.w700))),
                     ],
                   ),
-                  backgroundColor: AppTheme.spritz,
+                  backgroundColor: AppTheme.vellutoChiaro,
                   duration: const Duration(days: 1),
                   action: SnackBarAction(
                     label: 'Apri',
-                    textColor: AppTheme.onAccent,
+                    textColor: AppTheme.limone,
                     onPressed: () {
                       if (!mounted) {
                         return;

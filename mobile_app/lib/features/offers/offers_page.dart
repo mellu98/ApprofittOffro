@@ -558,14 +558,15 @@ class _ProfileOffersReminder extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: AppTheme.spritz,
+            color: AppTheme.velluto,
             borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: AppTheme.bordo),
           ),
           child: const Row(
             children: [
               Icon(
                 Icons.event_note_rounded,
-                color: AppTheme.onAccent,
+                color: AppTheme.limone,
                 size: 22,
               ),
               SizedBox(width: 12),
@@ -573,7 +574,7 @@ class _ProfileOffersReminder extends StatelessWidget {
                 child: Text(
                   'Gestisci i tuoi eventi dal profilo.',
                   style: TextStyle(
-                    color: AppTheme.onAccent,
+                    color: AppTheme.panna,
                     fontWeight: FontWeight.w800,
                     fontSize: 15,
                   ),
@@ -581,7 +582,7 @@ class _ProfileOffersReminder extends StatelessWidget {
               ),
               Icon(
                 Icons.chevron_right_rounded,
-                color: AppTheme.onAccent,
+                color: AppTheme.lavanda,
                 size: 24,
               ),
             ],
