@@ -418,7 +418,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 rating <= selectedRating
                                     ? Icons.star_rounded
                                     : Icons.star_outline_rounded,
-                                color: const Color(0xFFD49B00),
+                                color: AppTheme.limone,
                                 size: 30,
                               ),
                             );
@@ -1119,7 +1119,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 rating <= selectedRating
                                     ? Icons.star_rounded
                                     : Icons.star_outline_rounded,
-                                color: const Color(0xFFD49B00),
+                                color: AppTheme.limone,
                                 size: 30,
                               ),
                             );
@@ -1405,7 +1405,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                       rating <= selectedRating
                                           ? Icons.star_rounded
                                           : Icons.star_outline_rounded,
-                                      color: const Color(0xFFD49B00),
+                                      color: AppTheme.limone,
                                       size: 30,
                                     ),
                                   );
@@ -1843,7 +1843,7 @@ class _ProfilePageState extends State<ProfilePage> {
             FilledButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
               style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF8A4336),
+                backgroundColor: AppTheme.lamponeScuro,
               ),
               child: const Text('Elimina account'),
             ),
@@ -1973,8 +1973,7 @@ class _ProfilePageState extends State<ProfilePage> {
         final extraPhotoCount = totalPhotos > 0 ? totalPhotos - 1 : 0;
         final extraBadgeBackground =
             AppTheme.isDarkPalette ? AppTheme.orange : AppTheme.espresso;
-        final extraBadgeTextColor =
-            AppTheme.isDarkPalette ? Colors.white : Colors.white;
+        const extraBadgeTextColor = AppTheme.onAccent;
         final photoUrl = user != null && user.photoFilename.isNotEmpty
             ? apiClient.buildUploadUrl(user.photoFilename)
             : null;
@@ -2412,7 +2411,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               children: [
                                 const Icon(
                                   Icons.people_outline_rounded,
-                                  color: Color(0xFF3D8B5A),
+                                  color: AppTheme.menta,
                                 ),
                                 const SizedBox(width: 10),
                                 Expanded(
@@ -2446,7 +2445,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   _openCommunitySheet(followers: true);
                                 },
                                 icon: const Icon(Icons.person_add_outlined,
-                                    color: Color(0xFF3D8B5A)),
+                                    color: AppTheme.menta),
                                 label: const Text('Chi ti segue'),
                               ),
                               const SizedBox(width: 12),
@@ -2458,7 +2457,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   _openCommunitySheet(followers: false);
                                 },
                                 icon: const Icon(Icons.person_remove_outlined,
-                                    color: Color(0xFF3D8B5A)),
+                                    color: AppTheme.menta),
                                 label: const Text('I tuoi seguiti'),
                               ),
                             ],
@@ -2493,7 +2492,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               children: [
                                 const Icon(
                                   Icons.history_toggle_off_rounded,
-                                  color: Color(0xFFD49B00),
+                                  color: AppTheme.limone,
                                 ),
                                 const SizedBox(width: 10),
                                 Expanded(
@@ -2527,7 +2526,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   _openArchivedOffersSheet(claimed: false);
                                 },
                                 icon: const Icon(Icons.event_available_outlined,
-                                    color: Color(0xFFD49B00)),
+                                    color: AppTheme.limone),
                                 label: const Text('Host'),
                               ),
                               const SizedBox(width: 12),
@@ -2539,7 +2538,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   _openArchivedOffersSheet(claimed: true);
                                 },
                                 icon: const Icon(Icons.groups_2_outlined,
-                                    color: Color(0xFFD49B00)),
+                                    color: AppTheme.limone),
                                 label: const Text('Guest'),
                               ),
                             ],
@@ -2732,8 +2731,10 @@ class _PendingClaimCard extends StatelessWidget {
                     child: OutlinedButton.icon(
                       onPressed: onReject,
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF8A4336),
-                        side: const BorderSide(color: Color(0xFFD7B4AC)),
+                        foregroundColor: AppTheme.lampone,
+                        side: BorderSide(
+                          color: AppTheme.lampone.withValues(alpha: 0.6),
+                        ),
                       ),
                       icon: const Icon(Icons.close_rounded),
                       label: const Text('Rifiuta'),
@@ -2744,7 +2745,7 @@ class _PendingClaimCard extends StatelessWidget {
                     child: FilledButton.icon(
                       onPressed: onAccept,
                       style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF3D8B5A),
+                        backgroundColor: AppTheme.menta,
                       ),
                       icon: const Icon(Icons.check_rounded),
                       label: const Text('Accetta'),
@@ -3492,27 +3493,29 @@ class _OwnOfferPreviewCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: Colors.orange.shade50,
+                          color: AppTheme.spritz.withValues(alpha: 0.16),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.orange.shade200),
+                          border: Border.all(
+                            color: AppTheme.spritz.withValues(alpha: 0.5),
+                          ),
                         ),
-                        child: Row(
+                        child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.rate_review,
-                                size: 16, color: Colors.orange.shade700),
-                            const SizedBox(width: 4),
+                                size: 16, color: AppTheme.spritz),
+                            SizedBox(width: 4),
                             Text(
                               'Da recensire',
                               style: TextStyle(
-                                color: Colors.orange.shade700,
+                                color: AppTheme.spritz,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const SizedBox(width: 4),
+                            SizedBox(width: 4),
                             Icon(Icons.chevron_right,
-                                size: 16, color: Colors.orange.shade700),
+                                size: 16, color: AppTheme.spritz),
                           ],
                         ),
                       ),
@@ -3531,7 +3534,7 @@ class _OwnOfferPreviewCard extends StatelessWidget {
                 'In corso',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Color(0xFF3D8B5A),
+                  color: AppTheme.menta,
                   fontWeight: FontWeight.w700,
                   fontSize: 14,
                 ),
@@ -4447,7 +4450,7 @@ class _PremiumRadarSheetState extends State<_PremiumRadarSheet> {
                             icon: Icons.flash_on_rounded,
                             value: '${radar.lastMinuteCount}',
                             label: 'last minute',
-                            color: const Color(0xFFD49B00),
+                            color: AppTheme.limone,
                           ),
                         ),
                       ],
@@ -4533,7 +4536,7 @@ class _RadarMetricCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.78),
+        color: AppTheme.velluto,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: color.withValues(alpha: 0.28)),
       ),
@@ -4712,8 +4715,8 @@ class _ProfileToolsCard extends StatelessWidget {
   final VoidCallback onOpenAdminPanel;
 
   static const Color _toolsViolet = AppTheme.vividViolet;
-  static const Color _toolsBlue = Color(0xFF38CCFF);
-  static const Color _toolsYellow = Color(0xFFFFD34D);
+  static const Color _toolsBlue = AppTheme.lilla;
+  static const Color _toolsYellow = AppTheme.limone;
 
   Widget _toolAction({
     required VoidCallback onPressed,
@@ -4883,8 +4886,8 @@ class _SettingsCard extends StatelessWidget {
   final VoidCallback? onLogout;
 
   static const Color _settingsViolet = AppTheme.vividViolet;
-  static const Color _settingsBlue = Color(0xFF38CCFF);
-  static const Color _settingsYellow = Color(0xFFFFD34D);
+  static const Color _settingsBlue = AppTheme.lilla;
+  static const Color _settingsYellow = AppTheme.limone;
 
   Widget _buildHeader(BuildContext context) {
     final icon = expandUp

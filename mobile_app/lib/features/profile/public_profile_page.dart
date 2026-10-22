@@ -571,7 +571,7 @@ class _PublicProfilePageState extends State<PublicProfilePage> {
                                 rating <= selectedRating
                                     ? Icons.star_rounded
                                     : Icons.star_outline_rounded,
-                                color: const Color(0xFFD49B00),
+                                color: AppTheme.limone,
                                 size: 30,
                               ),
                             );
@@ -849,8 +849,7 @@ class _ProfileHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final extraBadgeBackground =
         AppTheme.isDarkPalette ? AppTheme.orange : AppTheme.espresso;
-    final extraBadgeTextColor =
-        AppTheme.isDarkPalette ? Colors.white : Colors.white;
+    const extraBadgeTextColor = AppTheme.onAccent;
     final imageUrl = user.photoFilename.isNotEmpty
         ? apiClient.buildUploadUrl(user.photoFilename)
         : null;
@@ -970,7 +969,7 @@ class _ProfileHeader extends StatelessWidget {
             children: [
               const Icon(
                 Icons.star_rounded,
-                color: Color(0xFFD49B00),
+                color: AppTheme.limone,
               ),
               const SizedBox(width: 6),
               Text(

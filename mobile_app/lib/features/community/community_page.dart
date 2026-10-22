@@ -607,7 +607,7 @@ class _CommunityUserCard extends StatelessWidget {
                             const Icon(
                               Icons.star_rounded,
                               size: 18,
-                              color: Color(0xFFD49B00),
+                              color: AppTheme.limone,
                             ),
                             const SizedBox(width: 4),
                             Text(
