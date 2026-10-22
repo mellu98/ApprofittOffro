@@ -317,7 +317,7 @@ class _CreateOfferPageState extends State<CreateOfferPage> {
                     const SizedBox(height: 12),
                     Builder(
                       builder: (context) {
-                        final darkPalette = AppTheme.useMusicAiPalette;
+                        final darkPalette = AppTheme.isDarkPalette;
                         return Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(14),
@@ -626,15 +626,15 @@ class _CreateOfferPageState extends State<CreateOfferPage> {
                           : const Icon(Icons.delete_outline_rounded),
                       label: const Text('Elimina offerta'),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppTheme.useMusicAiPalette
+                        foregroundColor: AppTheme.isDarkPalette
                             ? AppTheme.orange
                             : const Color(0xFF8A4336),
                         side: BorderSide(
-                          color: AppTheme.useMusicAiPalette
+                          color: AppTheme.isDarkPalette
                               ? AppTheme.cardBorder
                               : const Color(0xFFD7B4AC),
                         ),
-                        backgroundColor: AppTheme.useMusicAiPalette
+                        backgroundColor: AppTheme.isDarkPalette
                             ? AppTheme.sand.withValues(alpha: 0.74)
                             : const Color(0xFFF7ECE8),
                       ),
@@ -718,7 +718,7 @@ class _CreateOfferPageState extends State<CreateOfferPage> {
 
   Widget _buildMapPickerSheet(BuildContext context) {
     final theme = Theme.of(context);
-    const darkPalette = AppTheme.useMusicAiPalette;
+    const darkPalette = AppTheme.isDarkPalette;
 
     return FractionallySizedBox(
       heightFactor: 0.88,
@@ -2171,7 +2171,7 @@ class _SelectedPlacePreviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final darkPalette = AppTheme.useMusicAiPalette;
+    final darkPalette = AppTheme.isDarkPalette;
     final isManualAddress = place.id.startsWith('manual_address:');
     final titleText = isManualAddress ? place.address : place.name;
     final subtitleText = isManualAddress
@@ -2265,7 +2265,7 @@ class _GoogleMapsPreviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const darkPalette = AppTheme.useMusicAiPalette;
+    const darkPalette = AppTheme.isDarkPalette;
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
       child: SizedBox(
@@ -2399,7 +2399,7 @@ class _MealChoiceChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const darkPalette = AppTheme.useMusicAiPalette;
+    const darkPalette = AppTheme.isDarkPalette;
     final selected = currentValue == value;
     const color = AppTheme.offerGreen;
 

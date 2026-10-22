@@ -1149,26 +1149,25 @@ class _ChatPageState extends State<ChatPage> {
     return '${parsed.year}${two(parsed.month)}${two(parsed.day)}_${two(parsed.hour)}${two(parsed.minute)}${two(parsed.second)}';
   }
 
-  bool get _isMusicAiDark => AppTheme.useMusicAiPalette;
+  bool get _isMusicAiDark => AppTheme.isDarkPalette;
 
   Color get _chatCanvasTop =>
-      _isMusicAiDark ? const Color(0xFF070A11) : const Color(0xFFF8F0E9);
+      _isMusicAiDark ? AppTheme.notte : const Color(0xFFF8F0E9);
   Color get _chatCanvasBottom =>
-      _isMusicAiDark ? const Color(0xFF11182A) : const Color(0xFFF4ECE5);
-  Color get _chatInputSurface => _isMusicAiDark
-      ? const Color(0xFF1A2439)
-      : (Colors.grey[100] ?? AppTheme.mist);
+      _isMusicAiDark ? AppTheme.mist : const Color(0xFFF4ECE5);
+  Color get _chatInputSurface =>
+      _isMusicAiDark ? AppTheme.velluto : (Colors.grey[100] ?? AppTheme.mist);
   Color get _chatInputBorder =>
-      _isMusicAiDark ? const Color(0xFF2F3B5A) : AppTheme.cardBorder;
+      _isMusicAiDark ? AppTheme.bordo : AppTheme.cardBorder;
   Color get _incomingBubbleColor =>
-      _isMusicAiDark ? const Color(0xFF1C263D) : const Color(0xFFF7EADF);
+      _isMusicAiDark ? AppTheme.vellutoChiaro : const Color(0xFFF7EADF);
   Color get _incomingVideoBubbleColor =>
-      _isMusicAiDark ? const Color(0xFF182133) : const Color(0xFFF9F2EA);
+      _isMusicAiDark ? AppTheme.velluto : const Color(0xFFF9F2EA);
   Color get _outgoingBubbleColor => _isMusicAiDark
-      ? const Color(0xFF314783)
+      ? AppTheme.lamponeScuro
       : AppTheme.orange.withValues(alpha: 0.94);
   Color get _outgoingVideoBubbleColor =>
-      _isMusicAiDark ? const Color(0xFF273B72) : const Color(0xFFF4E8DE);
+      _isMusicAiDark ? AppTheme.lamponeScuro : const Color(0xFFF4E8DE);
 
   EdgeInsets _chatComposerSystemPadding(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
@@ -2312,7 +2311,7 @@ class _ChatPageState extends State<ChatPage> {
     final color = isMe
         ? Colors.white.withValues(alpha: _isMusicAiDark ? 0.76 : 0.68)
         : (_isMusicAiDark
-            ? const Color(0xFFD5DFFF).withValues(alpha: 0.74)
+            ? AppTheme.lavandaChiara.withValues(alpha: 0.74)
             : AppTheme.brown.withValues(alpha: 0.66));
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -2663,7 +2662,7 @@ class _ChatPageState extends State<ChatPage> {
     final type = data['type']?.toString().toLowerCase() ?? 'text';
     final textColor = isMe
         ? Colors.white
-        : (_isMusicAiDark ? const Color(0xFFEAF0FF) : AppTheme.espresso);
+        : (_isMusicAiDark ? AppTheme.panna : AppTheme.espresso);
     final offerId = _parsedOfferId;
     final otherUserId = _parsedOtherUserId;
 
@@ -2904,10 +2903,9 @@ class _ChatPageState extends State<ChatPage> {
       text: data['text']?.toString() ?? '',
       style: TextStyle(color: textColor),
       linkStyle: TextStyle(
-        color: isMe ? const Color(0xFFE7D8FF) : const Color(0xFF55D8FF),
+        color: isMe ? AppTheme.limone : AppTheme.limone,
         decoration: TextDecoration.underline,
-        decorationColor:
-            isMe ? const Color(0xFFE7D8FF) : const Color(0xFF55D8FF),
+        decorationColor: isMe ? AppTheme.limone : AppTheme.limone,
         fontWeight: FontWeight.w800,
       ),
       onOpenLink: (url) => unawaited(_openChatLink(url)),
@@ -3474,9 +3472,8 @@ class _ChatPageState extends State<ChatPage> {
                           'Nessun messaggio ancora.\nScrivi qualcosa per iniziare!',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: _isMusicAiDark
-                                ? const Color(0xFF8F9BB9)
-                                : Colors.grey,
+                            color:
+                                _isMusicAiDark ? AppTheme.lavanda : Colors.grey,
                           ),
                         ),
                       );
@@ -3664,8 +3661,7 @@ class _ChatPageState extends State<ChatPage> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                   decoration: BoxDecoration(
-                    color:
-                        _isMusicAiDark ? const Color(0xFF0B111C) : Colors.white,
+                    color: _isMusicAiDark ? AppTheme.notte : Colors.white,
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.05),

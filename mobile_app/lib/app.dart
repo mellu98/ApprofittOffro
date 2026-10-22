@@ -212,7 +212,7 @@ class _ApprofittOffroMobileAppState extends State<ApprofittOffroMobileApp>
       navigatorKey: _navigatorKey,
       scaffoldMessengerKey: _scaffoldMessengerKey,
       title: 'ApprofittOffro',
-      theme: AppTheme.light(),
+      theme: AppTheme.theme(),
       debugShowCheckedModeBanner: false,
       locale: const Locale('it', 'IT'),
       supportedLocales: const [

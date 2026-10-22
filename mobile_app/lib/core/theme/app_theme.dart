@@ -1,168 +1,334 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  /// Test palette switch:
-  /// - true  => look "Music AI" (violet / blue neon style)
-  /// - false => palette originale ApprofittOffro
-  static const bool useMusicAiPalette = true;
+  /// Brand "Cin Cin": notte calda, spritz, lampone e limone.
+  /// Il tema è scuro: i widget che distinguono chiaro/scuro leggono questo flag.
+  static const bool isDarkPalette = true;
 
-  static const cream =
-      useMusicAiPalette ? Color(0xFF080B12) : Color(0xFFF6F0E7);
-  static const paper =
-      useMusicAiPalette ? Color(0xFF0F1422) : Color(0xFFFFFBF7);
-  static const sand = useMusicAiPalette ? Color(0xFF1A2336) : Color(0xFFE6D8C8);
-  static const peach =
-      useMusicAiPalette ? Color(0xFF222C44) : Color(0xFFD8A484);
-  static const orange =
-      useMusicAiPalette ? Color(0xFF755CFF) : Color(0xFFAD5A3C);
-  static const brown =
-      useMusicAiPalette ? Color(0xFFDDE5FF) : Color(0xFF49362D);
-  static const espresso =
-      useMusicAiPalette ? Color(0xFFF4F7FF) : Color(0xFF221914);
-  static const sage = useMusicAiPalette ? Color(0xFF38CCFF) : Color(0xFF96A182);
-  static const mist = useMusicAiPalette ? Color(0xFF121A2B) : Color(0xFFF3E8DA);
-  static const cardBorder =
-      useMusicAiPalette ? Color(0xFF2D3A59) : Color(0xFFD8C5AE);
-  static const moss = useMusicAiPalette ? Color(0xFF49A5FF) : Color(0xFF657353);
-  static const gold = useMusicAiPalette ? Color(0xFF9A7DFF) : Color(0xFFD3A24E);
-  static const berry =
-      useMusicAiPalette ? Color(0xFF4C37C9) : Color(0xFF6A4744);
-  static const plum = useMusicAiPalette ? Color(0xFF6A4CFF) : Color(0xFF5E4A63);
-  static const vividViolet =
-      useMusicAiPalette ? Color(0xFFC94DFF) : Color(0xFF7A4EC7);
-  static const offerGreen = Color(0xFF28C76F);
-  static const shadow = Color(0x18000000);
+  static const String displayFont = 'BricolageGrotesque';
+  static const String textFont = 'Figtree';
 
-  static const heroGradient = useMusicAiPalette
-      ? LinearGradient(
-          colors: [Color(0xFF121A31), Color(0xFF2A1F66), Color(0xFF154763)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        )
-      : LinearGradient(
-          colors: [Color(0xFFF4E1CB), Color(0xFFD39573), Color(0xFF8F9882)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        );
+  // Palette Cin Cin
+  static const notte = Color(0xFF1B1124);
+  static const velluto = Color(0xFF2A1C36);
+  static const vellutoChiaro = Color(0xFF3A2949);
+  static const bordo = Color(0xFF4A3A5A);
+  static const spritz = Color(0xFFFF6A2B);
+  static const lampone = Color(0xFFFF4D8D);
 
-  static const accentGradient = useMusicAiPalette
-      ? LinearGradient(
-          colors: [Color(0xFF7B63FF), Color(0xFF3DD0FF)],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        )
-      : LinearGradient(
-          colors: [orange, berry],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        );
+  /// Lampone scuro: fondo dei messaggi inviati, regge il testo bianco.
+  static const lamponeScuro = Color(0xFF6E2346);
+  static const limone = Color(0xFFFFE04A);
+  static const menta = Color(0xFF3DDC97);
+  static const lilla = Color(0xFFB79CFF);
+  static const panna = Color(0xFFFFF4EA);
+  static const lavandaChiara = Color(0xFFD9CCE3);
+  static const lavanda = Color(0xFFA898B6);
 
-  static const surfaceGradient = useMusicAiPalette
-      ? LinearGradient(
-          colors: [Color(0xFF0F1422), Color(0xFF141C2E)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        )
-      : LinearGradient(
-          colors: [Color(0xFFFFFCF9), Color(0xFFF4E9DC)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        );
+  /// Testo e icone sopra Spritz, Lampone, Limone, Menta e Panna.
+  static const onAccent = notte;
 
-  static const elevatedSurfaceGradient = useMusicAiPalette
-      ? LinearGradient(
-          colors: [Color(0xFF12192A), Color(0xFF172038), Color(0xFF1B2842)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        )
-      : LinearGradient(
-          colors: [Color(0xFFFFFBF7), Color(0xFFF0E2D4), Color(0xFFE9DDD1)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        );
+  // Nomi storici usati in tutta l'app, rimappati sulla palette Cin Cin.
+  static const cream = notte;
+  static const paper = velluto;
+  static const sand = vellutoChiaro;
+  static const peach = bordo;
+  static const orange = spritz;
+  static const brown = lavandaChiara;
+  static const espresso = panna;
+  static const sage = limone;
+  static const mist = Color(0xFF231730);
+  static const cardBorder = bordo;
+  static const moss = menta;
+  static const gold = limone;
+  static const berry = lilla;
+  static const plum = lampone;
+  static const vividViolet = lampone;
+  static const offerGreen = menta;
+  static const shadow = Color(0x40000000);
 
-  static const softAccentGradient = useMusicAiPalette
-      ? LinearGradient(
-          colors: [Color(0xFF1D2540), Color(0xFF202B49)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        )
-      : LinearGradient(
-          colors: [Color(0xFFF7E5D4), Color(0xFFE7D8CC)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        );
+  static const heroGradient = LinearGradient(
+    colors: [velluto, Color(0xFF331F42)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
 
-  static ThemeData light() {
-    if (useMusicAiPalette) {
-      return _musicAiDark();
+  static const accentGradient = LinearGradient(
+    colors: [spritz, lampone],
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+  );
+
+  static const surfaceGradient = LinearGradient(
+    colors: [velluto, velluto],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const elevatedSurfaceGradient = LinearGradient(
+    colors: [Color(0xFF2F1F3C), velluto],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const softAccentGradient = LinearGradient(
+    colors: [vellutoChiaro, Color(0xFF33243F)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static String _normalizeMeal(String tipoPasto) =>
+      tipoPasto.trim().toLowerCase();
+
+  /// Colore di ogni momento: colazione limone, aperitivo spritz,
+  /// pranzo menta, cena lilla.
+  static Color mealColor(String tipoPasto) {
+    switch (_normalizeMeal(tipoPasto)) {
+      case 'colazione':
+        return limone;
+      case 'ape':
+      case 'aperitivo':
+        return spritz;
+      case 'pranzo':
+        return menta;
+      case 'cena':
+        return lilla;
+      default:
+        return lampone;
     }
+  }
 
+  static IconData mealIcon(String tipoPasto) {
+    switch (_normalizeMeal(tipoPasto)) {
+      case 'colazione':
+        return Icons.free_breakfast_rounded;
+      case 'ape':
+      case 'aperitivo':
+        return Icons.local_bar_rounded;
+      case 'pranzo':
+        return Icons.restaurant_rounded;
+      case 'cena':
+        return Icons.nights_stay_rounded;
+      default:
+        return Icons.local_dining_rounded;
+    }
+  }
+
+  static String mealLabel(String tipoPasto) {
+    switch (_normalizeMeal(tipoPasto)) {
+      case 'colazione':
+        return 'Colazione';
+      case 'ape':
+      case 'aperitivo':
+        return 'Aperitivo';
+      case 'pranzo':
+        return 'Pranzo';
+      case 'cena':
+        return 'Cena';
+      default:
+        return tipoPasto;
+    }
+  }
+
+  static ThemeData theme() {
     const scheme = ColorScheme(
-      brightness: Brightness.light,
-      primary: orange,
-      secondary: sand,
-      onPrimary: Colors.white,
-      onSecondary: espresso,
-      error: Color(0xFFB64C3A),
-      onError: Colors.white,
-      surface: paper,
-      onSurface: espresso,
+      brightness: Brightness.dark,
+      primary: spritz,
+      onPrimary: onAccent,
+      primaryContainer: Color(0xFF4A2418),
+      onPrimaryContainer: panna,
+      secondary: lampone,
+      onSecondary: onAccent,
+      secondaryContainer: Color(0xFF4A1F33),
+      onSecondaryContainer: panna,
+      tertiary: limone,
+      onTertiary: onAccent,
+      error: Color(0xFFFF6B6B),
+      onError: onAccent,
+      surface: velluto,
+      onSurface: panna,
+      onSurfaceVariant: lavandaChiara,
+      surfaceContainerLowest: notte,
+      surfaceContainerLow: mist,
+      surfaceContainer: velluto,
+      surfaceContainerHigh: vellutoChiaro,
+      surfaceContainerHighest: Color(0xFF443356),
+      outline: bordo,
+      outlineVariant: vellutoChiaro,
+      inverseSurface: panna,
+      onInverseSurface: notte,
+      inversePrimary: Color(0xFFB8400F),
+      shadow: Colors.black,
+      scrim: Colors.black,
+      surfaceTint: Colors.transparent,
+    );
+
+    const textTheme = TextTheme(
+      displaySmall: TextStyle(
+        fontFamily: displayFont,
+        fontSize: 40,
+        fontWeight: FontWeight.w800,
+        height: 1.0,
+        letterSpacing: -1.2,
+        color: panna,
+      ),
+      headlineLarge: TextStyle(
+        fontFamily: displayFont,
+        fontSize: 34,
+        fontWeight: FontWeight.w800,
+        height: 1.02,
+        letterSpacing: -0.9,
+        color: panna,
+      ),
+      headlineMedium: TextStyle(
+        fontFamily: displayFont,
+        fontSize: 30,
+        fontWeight: FontWeight.w800,
+        height: 1.05,
+        letterSpacing: -0.7,
+        color: panna,
+      ),
+      headlineSmall: TextStyle(
+        fontFamily: displayFont,
+        fontSize: 24,
+        fontWeight: FontWeight.w800,
+        height: 1.1,
+        letterSpacing: -0.4,
+        color: panna,
+      ),
+      titleLarge: TextStyle(
+        fontFamily: displayFont,
+        fontSize: 21,
+        fontWeight: FontWeight.w800,
+        height: 1.15,
+        letterSpacing: -0.3,
+        color: panna,
+      ),
+      titleMedium: TextStyle(
+        fontFamily: textFont,
+        fontSize: 17,
+        fontWeight: FontWeight.w800,
+        color: panna,
+      ),
+      titleSmall: TextStyle(
+        fontFamily: textFont,
+        fontSize: 15,
+        fontWeight: FontWeight.w700,
+        color: panna,
+      ),
+      bodyLarge: TextStyle(
+        fontFamily: textFont,
+        color: lavandaChiara,
+        fontSize: 16,
+        height: 1.45,
+      ),
+      bodyMedium: TextStyle(
+        fontFamily: textFont,
+        color: lavandaChiara,
+        fontSize: 14,
+        height: 1.4,
+      ),
+      bodySmall: TextStyle(
+        fontFamily: textFont,
+        color: lavanda,
+        fontSize: 12.5,
+        height: 1.35,
+      ),
+      labelLarge: TextStyle(
+        fontFamily: textFont,
+        fontSize: 16,
+        fontWeight: FontWeight.w800,
+      ),
+      labelMedium: TextStyle(
+        fontFamily: textFont,
+        fontSize: 13,
+        fontWeight: FontWeight.w700,
+      ),
+      labelSmall: TextStyle(
+        fontFamily: textFont,
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+      ),
     );
 
     return ThemeData(
       useMaterial3: true,
+      brightness: Brightness.dark,
       colorScheme: scheme,
-      scaffoldBackgroundColor: cream,
-      canvasColor: cream,
+      fontFamily: textFont,
+      textTheme: textTheme,
+      scaffoldBackgroundColor: notte,
+      canvasColor: notte,
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
-        foregroundColor: espresso,
+        foregroundColor: panna,
         elevation: 0,
         toolbarHeight: 72,
         centerTitle: true,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
         shadowColor: Colors.transparent,
+        titleTextStyle: TextStyle(
+          fontFamily: displayFont,
+          fontSize: 21,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.3,
+          color: panna,
+        ),
       ),
       cardTheme: CardThemeData(
-        color: paper,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        color: velluto,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         elevation: 0,
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        surfaceTintColor: paper,
+        surfaceTintColor: Colors.transparent,
         shadowColor: shadow,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFFFFF6EC),
+        fillColor: velluto,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-        hintStyle: TextStyle(color: brown.withValues(alpha: 0.52)),
-        labelStyle: TextStyle(color: brown.withValues(alpha: 0.74)),
+        hintStyle: const TextStyle(color: lavanda),
+        labelStyle: const TextStyle(color: lavandaChiara),
+        floatingLabelStyle: const TextStyle(
+          color: limone,
+          fontWeight: FontWeight.w700,
+        ),
+        prefixIconColor: lavanda,
+        suffixIconColor: lavanda,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: cardBorder),
+          borderSide: const BorderSide(color: bordo),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: orange, width: 1.4),
+          borderSide: const BorderSide(color: spritz, width: 1.6),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(color: Color(0xFFFF6B6B)),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(color: Color(0xFFFF6B6B), width: 1.6),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: orange,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          backgroundColor: spritz,
+          foregroundColor: onAccent,
+          disabledBackgroundColor: vellutoChiaro,
+          disabledForegroundColor: lavanda,
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
           elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
+          shape: const StadiumBorder(),
           textStyle: const TextStyle(
+            fontFamily: textFont,
             fontSize: 16,
             fontWeight: FontWeight.w800,
           ),
@@ -170,261 +336,195 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: espresso,
-          side: const BorderSide(color: cardBorder),
-          backgroundColor: paper,
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
+          foregroundColor: panna,
+          side: BorderSide(color: panna.withValues(alpha: 0.6), width: 1.5),
+          backgroundColor: Colors.transparent,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          shape: const StadiumBorder(),
           textStyle: const TextStyle(
+            fontFamily: textFont,
             fontSize: 15,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
           ),
         ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: limone,
+          textStyle: const TextStyle(
+            fontFamily: textFont,
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: vellutoChiaro,
+          foregroundColor: panna,
+          elevation: 0,
+          shape: const StadiumBorder(),
+          textStyle: const TextStyle(
+            fontFamily: textFont,
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: spritz,
+        foregroundColor: onAccent,
+        elevation: 0,
+        shape: StadiumBorder(),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: paper,
-        indicatorColor: vividViolet.withValues(alpha: 0.32),
-        surfaceTintColor: paper,
-        shadowColor: vividViolet.withValues(alpha: 0.46),
-        elevation: 14,
-        iconTheme: WidgetStateProperty.resolveWith<IconThemeData>((states) {
-          final selected = states.contains(WidgetState.selected);
-          return IconThemeData(
-            color: selected ? vividViolet : brown.withValues(alpha: 0.78),
-          );
-        }),
-        labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>((states) {
-          final selected = states.contains(WidgetState.selected);
-          return TextStyle(
-            fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
-            color: selected ? Colors.white : brown.withValues(alpha: 0.82),
-          );
-        }),
-      ),
-      snackBarTheme: SnackBarThemeData(
-        backgroundColor: berry,
-        contentTextStyle: const TextStyle(color: Colors.white),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        behavior: SnackBarBehavior.floating,
-      ),
-      chipTheme: ChipThemeData(
-        backgroundColor: const Color(0xFFFFF6EE),
-        selectedColor: const Color(0xFFECD4C4),
-        disabledColor: sand.withValues(alpha: 0.45),
-        secondarySelectedColor: const Color(0xFFECD4C4),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        labelStyle: const TextStyle(
-          color: espresso,
-          fontWeight: FontWeight.w700,
-        ),
-        secondaryLabelStyle: const TextStyle(
-          color: espresso,
-          fontWeight: FontWeight.w800,
-        ),
-        brightness: Brightness.light,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-          side: const BorderSide(color: cardBorder),
-        ),
-      ),
-      dialogTheme: DialogThemeData(
-        backgroundColor: paper,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
-        ),
-      ),
-      dividerTheme: const DividerThemeData(
-        color: cardBorder,
-        thickness: 1,
-      ),
-      textTheme: const TextTheme(
-        headlineMedium: TextStyle(
-          fontSize: 30,
-          fontWeight: FontWeight.w800,
-          color: espresso,
-        ),
-        titleLarge: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w800,
-          color: espresso,
-        ),
-        titleMedium: TextStyle(
-          fontSize: 17,
-          fontWeight: FontWeight.w800,
-          color: espresso,
-        ),
-        bodyLarge: TextStyle(color: brown, fontSize: 16, height: 1.4),
-        bodyMedium: TextStyle(color: brown, fontSize: 14, height: 1.35),
-        bodySmall: TextStyle(color: brown, fontSize: 12.5, height: 1.3),
-      ),
-    );
-  }
-
-  static ThemeData _musicAiDark() {
-    const scheme = ColorScheme(
-      brightness: Brightness.dark,
-      primary: orange,
-      secondary: sage,
-      onPrimary: Colors.white,
-      onSecondary: Colors.black,
-      error: Color(0xFFFF6B88),
-      onError: Colors.black,
-      surface: paper,
-      onSurface: espresso,
-    );
-
-    return ThemeData(
-      useMaterial3: true,
-      colorScheme: scheme,
-      scaffoldBackgroundColor: cream,
-      canvasColor: cream,
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.transparent,
-        foregroundColor: espresso,
-        elevation: 0,
-        toolbarHeight: 72,
-        centerTitle: true,
-        scrolledUnderElevation: 0,
+        backgroundColor: velluto,
+        indicatorColor: panna,
+        indicatorShape: const StadiumBorder(),
         surfaceTintColor: Colors.transparent,
         shadowColor: Colors.transparent,
-      ),
-      cardTheme: CardThemeData(
-        color: paper,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         elevation: 0,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        surfaceTintColor: Colors.transparent,
-        shadowColor: const Color(0x44000000),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: sand,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-        hintStyle: TextStyle(color: brown.withValues(alpha: 0.64)),
-        labelStyle: TextStyle(color: brown.withValues(alpha: 0.82)),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: cardBorder),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: orange, width: 1.4),
-        ),
-      ),
-      filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          backgroundColor: orange,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-      ),
-      outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: espresso,
-          side: const BorderSide(color: cardBorder),
-          backgroundColor: paper,
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
-          textStyle: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ),
-      navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: paper,
-        indicatorColor: vividViolet.withValues(alpha: 0.34),
-        surfaceTintColor: Colors.transparent,
-        shadowColor: vividViolet.withValues(alpha: 0.55),
-        elevation: 16,
+        height: 72,
         iconTheme: WidgetStateProperty.resolveWith<IconThemeData>((states) {
           final selected = states.contains(WidgetState.selected);
-          return IconThemeData(
-            color: selected ? vividViolet : brown.withValues(alpha: 0.86),
-          );
+          return IconThemeData(color: selected ? notte : lavanda);
         }),
         labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>((states) {
           final selected = states.contains(WidgetState.selected);
           return TextStyle(
+            fontFamily: textFont,
+            fontSize: 11.5,
             fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
-            color: selected ? Colors.white : brown.withValues(alpha: 0.9),
+            color: selected ? panna : lavanda,
           );
         }),
       ),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: const Color(0xFF2B3552),
-        contentTextStyle: const TextStyle(color: Colors.white),
+        backgroundColor: panna,
+        contentTextStyle: const TextStyle(
+          fontFamily: textFont,
+          color: notte,
+          fontWeight: FontWeight.w700,
+        ),
+        actionTextColor: const Color(0xFFB8400F),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         behavior: SnackBarBehavior.floating,
       ),
-      chipTheme: ChipThemeData(
-        backgroundColor: sand,
-        selectedColor: const Color(0xFF2A3350),
-        disabledColor: sand.withValues(alpha: 0.45),
-        secondarySelectedColor: const Color(0xFF2A3350),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        labelStyle: const TextStyle(
-          color: espresso,
+      chipTheme: const ChipThemeData(
+        backgroundColor: vellutoChiaro,
+        selectedColor: panna,
+        disabledColor: velluto,
+        secondarySelectedColor: panna,
+        checkmarkColor: notte,
+        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        labelStyle: TextStyle(
+          fontFamily: textFont,
+          color: panna,
           fontWeight: FontWeight.w700,
         ),
-        secondaryLabelStyle: const TextStyle(
-          color: espresso,
+        secondaryLabelStyle: TextStyle(
+          fontFamily: textFont,
+          color: notte,
           fontWeight: FontWeight.w800,
         ),
         brightness: Brightness.dark,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-          side: const BorderSide(color: cardBorder),
-        ),
+        side: BorderSide(color: bordo),
+        shape: StadiumBorder(),
       ),
       dialogTheme: DialogThemeData(
-        backgroundColor: paper,
+        backgroundColor: velluto,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(28),
         ),
+        titleTextStyle: const TextStyle(
+          fontFamily: displayFont,
+          fontSize: 22,
+          fontWeight: FontWeight.w800,
+          color: panna,
+        ),
+        contentTextStyle: const TextStyle(
+          fontFamily: textFont,
+          fontSize: 15,
+          height: 1.45,
+          color: lavandaChiara,
+        ),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: velluto,
+        modalBackgroundColor: velluto,
+        surfaceTintColor: Colors.transparent,
+        dragHandleColor: bordo,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: vellutoChiaro,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        textStyle: const TextStyle(
+          fontFamily: textFont,
+          color: panna,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      listTileTheme: const ListTileThemeData(
+        iconColor: lavandaChiara,
+        textColor: panna,
       ),
       dividerTheme: const DividerThemeData(
-        color: cardBorder,
+        color: bordo,
         thickness: 1,
       ),
-      textTheme: const TextTheme(
-        headlineMedium: TextStyle(
-          fontSize: 30,
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: spritz,
+        linearTrackColor: vellutoChiaro,
+        circularTrackColor: Colors.transparent,
+      ),
+      sliderTheme: SliderThemeData(
+        activeTrackColor: spritz,
+        inactiveTrackColor: bordo,
+        thumbColor: spritz,
+        overlayColor: spritz.withValues(alpha: 0.16),
+        valueIndicatorColor: spritz,
+        valueIndicatorTextStyle: const TextStyle(
+          fontFamily: textFont,
+          color: onAccent,
           fontWeight: FontWeight.w800,
-          color: espresso,
         ),
-        titleLarge: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w800,
-          color: espresso,
-        ),
-        titleMedium: TextStyle(
-          fontSize: 17,
-          fontWeight: FontWeight.w800,
-          color: espresso,
-        ),
-        bodyLarge: TextStyle(color: brown, fontSize: 16, height: 1.4),
-        bodyMedium: TextStyle(color: brown, fontSize: 14, height: 1.35),
-        bodySmall: TextStyle(color: brown, fontSize: 12.5, height: 1.3),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith<Color>((states) {
+          return states.contains(WidgetState.selected) ? notte : lavanda;
+        }),
+        trackColor: WidgetStateProperty.resolveWith<Color>((states) {
+          return states.contains(WidgetState.selected) ? limone : vellutoChiaro;
+        }),
+        trackOutlineColor: WidgetStateProperty.resolveWith<Color>((states) {
+          return states.contains(WidgetState.selected)
+              ? Colors.transparent
+              : bordo;
+        }),
+      ),
+      checkboxTheme: CheckboxThemeData(
+        fillColor: WidgetStateProperty.resolveWith<Color>((states) {
+          return states.contains(WidgetState.selected)
+              ? spritz
+              : Colors.transparent;
+        }),
+        checkColor: const WidgetStatePropertyAll<Color>(onAccent),
+        side: const BorderSide(color: lavanda, width: 1.6),
+      ),
+      radioTheme: RadioThemeData(
+        fillColor: WidgetStateProperty.resolveWith<Color>((states) {
+          return states.contains(WidgetState.selected) ? spritz : lavanda;
+        }),
+      ),
+      textSelectionTheme: TextSelectionThemeData(
+        cursorColor: spritz,
+        selectionColor: spritz.withValues(alpha: 0.35),
+        selectionHandleColor: spritz,
       ),
     );
   }

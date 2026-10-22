@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import 'cin_cin_widgets.dart';
 
 class BrandHeroCard extends StatelessWidget {
   const BrandHeroCard({
@@ -25,18 +26,8 @@ class BrandHeroCard extends StatelessWidget {
     return Container(
       padding: padding ?? const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: AppTheme.heroGradient,
+        color: AppTheme.velluto,
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color: AppTheme.cardBorder.withValues(alpha: 0.76),
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: AppTheme.shadow,
-            blurRadius: 26,
-            offset: Offset(0, 12),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment:
@@ -45,30 +36,10 @@ class BrandHeroCard extends StatelessWidget {
           if (eyebrow != null) ...[
             Align(
               alignment: centered ? Alignment.center : Alignment.centerLeft,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppTheme.paper.withValues(alpha: 0.78),
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(
-                    color: AppTheme.cardBorder.withValues(alpha: 0.58),
-                  ),
-                ),
-                child: Text(
-                  eyebrow!,
-                  textAlign: centered ? TextAlign.center : TextAlign.start,
-                  style: const TextStyle(
-                    color: AppTheme.brown,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.4,
-                  ),
-                ),
-              ),
+              child: CinCinSticker(label: eyebrow!),
             ),
+            const SizedBox(height: 16),
           ],
-          const SizedBox(height: 18),
           Text(
             title,
             textAlign: centered ? TextAlign.center : TextAlign.start,
@@ -81,10 +52,7 @@ class BrandHeroCard extends StatelessWidget {
           Text(
             subtitle,
             textAlign: centered ? TextAlign.center : TextAlign.start,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppTheme.brown.withValues(alpha: 0.84),
-                  height: 1.45,
-                ),
+            style: Theme.of(context).textTheme.bodyLarge,
           ),
           if (footer != null) ...[
             const SizedBox(height: 18),

@@ -848,9 +848,9 @@ class _ProfileHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final extraBadgeBackground =
-        AppTheme.useMusicAiPalette ? AppTheme.orange : AppTheme.espresso;
+        AppTheme.isDarkPalette ? AppTheme.orange : AppTheme.espresso;
     final extraBadgeTextColor =
-        AppTheme.useMusicAiPalette ? Colors.white : Colors.white;
+        AppTheme.isDarkPalette ? Colors.white : Colors.white;
     final imageUrl = user.photoFilename.isNotEmpty
         ? apiClient.buildUploadUrl(user.photoFilename)
         : null;
@@ -934,7 +934,7 @@ class _ProfileHeader extends StatelessWidget {
                 Icon(
                   Icons.photo_library_outlined,
                   size: 18,
-                  color: AppTheme.useMusicAiPalette
+                  color: AppTheme.isDarkPalette
                       ? AppTheme.orange
                       : AppTheme.espresso,
                 ),

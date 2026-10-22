@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../core/network/api_client.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_wordmark.dart';
+import '../../core/widgets/cin_cin_widgets.dart';
 import '../../models/offer.dart';
 import 'auth_controller.dart';
 import 'login_page.dart';
@@ -79,209 +80,196 @@ class _LandingPageState extends State<LandingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      body: DecoratedBox(
-        decoration: const BoxDecoration(gradient: AppTheme.heroGradient),
-        child: SafeArea(
-          child: RefreshIndicator(
-            onRefresh: _reloadOffers,
-            child: CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Center(
-                          child: BrandWordmark(
-                            height: 44,
-                            alignment: Alignment.center,
+      backgroundColor: AppTheme.notte,
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: _reloadOffers,
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          const Expanded(
+                            child: BrandWordmark(
+                              height: 44,
+                              alignment: Alignment.centerLeft,
+                            ),
                           ),
+                          if (widget.showLoginButton)
+                            TextButton(
+                              onPressed: _openLogin,
+                              child: const Text('Accedi'),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      const _LandingPhotoCluster(),
+                      const SizedBox(height: 26),
+                      Text.rich(
+                        const TextSpan(
+                          children: [
+                            TextSpan(text: 'Tu offri,\n'),
+                            TextSpan(
+                              text: 'io approfitto.',
+                              style: TextStyle(color: AppTheme.spritz),
+                            ),
+                          ],
+                        ),
+                        style: textTheme.displaySmall?.copyWith(
+                          fontSize: 44,
+                          height: 0.98,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Text(
+                        'Nuove persone, tavoli veri, pasti condivisi davvero. ApprofittOffro mette insieme chi offre un pasto e chi vuole viverlo con leggerezza, con profili reali.',
+                        style: textTheme.bodyLarge,
+                      ),
+                      if (widget.showLoginButton) ...[
+                        const SizedBox(height: 22),
+                        FilledButton(
+                          onPressed: _openLogin,
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size.fromHeight(56),
+                            textStyle: const TextStyle(
+                              fontFamily: AppTheme.textFont,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          child: const Text('Entra nel giro'),
+                        ),
+                      ],
+                      const SizedBox(height: 36),
+                      const _LandingSectionHeading(
+                        eyebrow: 'COME FUNZIONA',
+                        title: 'Tre passi e sei a tavola',
+                      ),
+                      const SizedBox(height: 14),
+                      const _LandingStepCard(
+                        number: 1,
+                        accent: AppTheme.spritz,
+                        title: 'Scopri chi c\'è in giro',
+                        body:
+                            'Apri Approfitta e guarda colazioni, aperitivi, pranzi e cene pubblicati dalla community.',
+                      ),
+                      const _LandingStepCard(
+                        number: 2,
+                        accent: AppTheme.lampone,
+                        title: 'Entra nei profili veri',
+                        body:
+                            'Da Community puoi vedere foto, età, città e scegliere chi seguire davvero.',
+                      ),
+                      const _LandingStepCard(
+                        number: 3,
+                        accent: AppTheme.limone,
+                        title: 'Iscriviti per partecipare',
+                        body:
+                            'Se un evento ti piace, crei il tuo account, entri nella community e poi approfitti davvero.',
+                      ),
+                      if (widget.showLoginButton) ...[
+                        const SizedBox(height: 30),
+                        const _LandingSectionHeading(
+                          eyebrow: 'EVENTI APERTI',
+                          title: 'Cosa aspetti, approfitta.',
                         ),
                         const SizedBox(height: 14),
-                        const _LandingPhotoCluster(),
-                        const SizedBox(height: 22),
-                        Text(
-                          'Nuove persone, tavoli veri, pasti condivisi davvero.',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium
-                              ?.copyWith(
-                                fontSize: 30,
-                                height: 1.05,
-                              ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'ApprofittOffro mette insieme chi offre un pasto e chi vuole viverlo con leggerezza, dal telefono e con profili reali.',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyLarge
-                              ?.copyWith(
-                                color: AppTheme.brown.withValues(alpha: 0.84),
-                                height: 1.45,
-                              ),
-                        ),
-                        const SizedBox(height: 18),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 18, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: AppTheme.paper.withValues(alpha: 0.68),
-                            borderRadius: BorderRadius.circular(26),
-                            border: Border.all(
-                              color: AppTheme.cardBorder.withValues(alpha: 0.7),
-                            ),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: AppTheme.shadow,
-                                blurRadius: 10,
-                                offset: Offset(0, 6),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        const _LandingInfoCard(
-                          title: 'ApprofittOffro Card',
-                          body:
-                              'Presto avrai la possibilità di aderire alla Community Card e con la tessera socio avrai diritto a sconti esclusivi nei locali che preferisci.',
-                          highlighted: true,
-                        ),
-                        const SizedBox(height: 24),
-                        const _LandingSectionHeading(
-                          eyebrow: 'COME FUNZIONA',
-                          title: 'Come funziona la community',
-                        ),
-                        const SizedBox(height: 12),
-                        const _LandingStepCard(
-                          title: 'Scopri chi c\'è in giro',
-                          body:
-                              'Apri Approfitta e guarda colazioni, pranzi e cene pubblicati dalla community.',
-                        ),
-                        const _LandingStepCard(
-                          title: 'Entra nei profili veri',
-                          body:
-                              'Da Community puoi vedere foto, età, città e scegliere chi seguire davvero.',
-                        ),
-                        const _LandingStepCard(
-                          title: 'Iscriviti per partecipare',
-                          body:
-                              'Se un evento ti piace, crei il tuo account, entri nella community e poi approfitti davvero.',
-                        ),
-                        if (widget.showLoginButton) ...[
-                          const SizedBox(height: 24),
-                          const _LandingSectionHeading(
-                            eyebrow: 'EVENTI APERTI',
-                            title: 'Eventi aperti della community',
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Cosa aspetti, approfitta.',
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          const SizedBox(height: 14),
-                          FutureBuilder<List<Offer>>(
-                            future: _offersFuture,
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState !=
-                                  ConnectionState.done) {
-                                return const Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 20),
-                                  child: Center(
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                );
-                              }
-
-                              if (snapshot.hasError) {
-                                return const _LandingNoticeCard(
-                                  message:
-                                      'Non riesco a caricare gli eventi aperti in questo momento.',
-                                );
-                              }
-
-                              final offers = (snapshot.data ?? const <Offer>[])
-                                  .where(
-                                    (offer) =>
-                                        offer.claimStatus == 'open' &&
-                                        offer.canClaim,
-                                  )
-                                  .take(4)
-                                  .toList();
-                              if (offers.isEmpty) {
-                                return const _LandingNoticeCard(
-                                  message:
-                                      'Per ora non vedo ancora eventi pubblici aperti.',
-                                );
-                              }
-
-                              return Column(
-                                children: offers
-                                    .map(
-                                      (offer) => _PublicOfferCard(
-                                        offer: offer,
-                                        apiClient:
-                                            widget.authController.apiClient,
-                                        onTap: _openLogin,
-                                      ),
-                                    )
-                                    .toList(),
+                        FutureBuilder<List<Offer>>(
+                          future: _offersFuture,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState !=
+                                ConnectionState.done) {
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 20),
+                                child: Center(
+                                  child: CircularProgressIndicator(),
+                                ),
                               );
-                            },
-                          ),
-                        ],
-                        const SizedBox(height: 24),
-                        const _LandingSectionHeading(
-                          eyebrow: 'VISIONE',
-                          title: 'Perché nasce ApprofittOffro',
+                            }
+
+                            if (snapshot.hasError) {
+                              return const _LandingNoticeCard(
+                                message:
+                                    'Non riesco a caricare gli eventi aperti in questo momento.',
+                              );
+                            }
+
+                            final offers = (snapshot.data ?? const <Offer>[])
+                                .where(
+                                  (offer) =>
+                                      offer.claimStatus == 'open' &&
+                                      offer.canClaim,
+                                )
+                                .take(4)
+                                .toList();
+                            if (offers.isEmpty) {
+                              return const _LandingNoticeCard(
+                                message:
+                                    'Per ora non vedo ancora eventi pubblici aperti.',
+                              );
+                            }
+
+                            return Column(
+                              children: offers
+                                  .map(
+                                    (offer) => _PublicOfferCard(
+                                      offer: offer,
+                                      apiClient:
+                                          widget.authController.apiClient,
+                                      onTap: _openLogin,
+                                    ),
+                                  )
+                                  .toList(),
+                            );
+                          },
                         ),
-                        const SizedBox(height: 12),
-                        const _LandingInfoCard(
-                          title: 'Più community, meno rumore',
-                          body:
-                              'L\'idea non è collezionare prenotazioni: è creare un giro di persone che si riconoscono e tornano.',
-                        ),
-                        const _LandingInfoCard(
-                          title: 'Profili, follower e fiducia',
-                          body:
-                              'Segui le persone che ti piacciono, guarda i loro profili e tieni vivi i contatti migliori.',
-                        ),
-                        if (widget.showLoginButton) ...[
-                          const SizedBox(height: 32),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 18),
-                            child: SizedBox(
-                              width: double.infinity,
-                              child: FilledButton(
-                                onPressed: _openLogin,
-                                style: FilledButton.styleFrom(
-                                  backgroundColor: AppTheme.orange,
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 16),
-                                ),
-                                child: const Text(
-                                  'Accedi / Iscriviti',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 40),
-                        ],
                       ],
-                    ),
+                      const SizedBox(height: 30),
+                      const _LandingInfoCard(
+                        title: 'ApprofittOffro Card',
+                        body:
+                            'Presto avrai la possibilità di aderire alla Community Card e con la tessera socio avrai diritto a sconti esclusivi nei locali che preferisci.',
+                        highlighted: true,
+                      ),
+                      const SizedBox(height: 30),
+                      const _LandingSectionHeading(
+                        eyebrow: 'VISIONE',
+                        title: 'Perché nasce ApprofittOffro',
+                      ),
+                      const SizedBox(height: 14),
+                      const _LandingInfoCard(
+                        title: 'Più community, meno rumore',
+                        body:
+                            'L\'idea non è collezionare prenotazioni: è creare un giro di persone che si riconoscono e tornano.',
+                      ),
+                      const _LandingInfoCard(
+                        title: 'Profili, follower e fiducia',
+                        body:
+                            'Segui le persone che ti piacciono, guarda i loro profili e tieni vivi i contatti migliori.',
+                      ),
+                      if (widget.showLoginButton) ...[
+                        const SizedBox(height: 24),
+                        FilledButton(
+                          onPressed: _openLogin,
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size.fromHeight(56),
+                          ),
+                          child: const Text('Accedi / Iscriviti'),
+                        ),
+                        const SizedBox(height: 32),
+                      ],
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -301,41 +289,14 @@ class _LandingSectionHeading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppTheme.paper.withValues(alpha: 0.82),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(
-              color: AppTheme.cardBorder.withValues(alpha: 0.72),
-            ),
-            boxShadow: const [
-              BoxShadow(
-                color: AppTheme.shadow,
-                blurRadius: 8,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Text(
-            eyebrow,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: AppTheme.brown,
-              fontSize: 12,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0.6,
-            ),
-          ),
-        ),
+        CinCinSticker(label: eyebrow, angle: -0.04),
         const SizedBox(height: 12),
         Text(
           title,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w900,
-                color: AppTheme.brown,
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontSize: 27,
               ),
         ),
       ],
@@ -371,49 +332,78 @@ class _LandingPhotoClusterState extends State<_LandingPhotoCluster>
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 248,
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, _) {
-          final progress = _controller.value * 2 * math.pi;
-          return Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Positioned(
-                left: 12,
-                top: 36 + math.sin(progress) * 10,
-                child: const _FloatingPhotoCard(
-                  assetPath: 'assets/landing/hero-brunch.jpg',
-                  width: 108,
-                  height: 156,
-                  angle: -0.08,
-                ),
-              ),
-              Positioned(
-                right: 10,
-                top: 10 + math.sin(progress + 1.7) * 12,
-                child: const _FloatingPhotoCard(
-                  assetPath: 'assets/landing/hero-dinner.jpg',
-                  width: 138,
-                  height: 182,
-                  angle: 0.07,
-                ),
-              ),
-              Positioned(
-                left: 88,
-                bottom: 8 + math.sin(progress + 3.2) * 10,
-                child: const _FloatingPhotoCard(
-                  assetPath: 'assets/landing/hero-friends.jpg',
-                  width: 118,
-                  height: 154,
-                  angle: -0.03,
-                ),
-              ),
-            ],
-          );
-        },
-      ),
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final height = math.min(width * 0.92, 360.0);
+        return SizedBox(
+          height: height,
+          child: AnimatedBuilder(
+            animation: _controller,
+            builder: (context, _) {
+              final progress =
+                  reduceMotion ? 0.0 : _controller.value * 2 * math.pi;
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned(
+                    left: width * 0.02,
+                    top: height * 0.08 + math.sin(progress) * 6,
+                    child: _FloatingPhotoCard(
+                      assetPath: 'assets/landing/hero-aperitivo.jpg',
+                      width: width * 0.5,
+                      height: height * 0.62,
+                      angle: -0.12,
+                      borderColor: AppTheme.spritz,
+                    ),
+                  ),
+                  Positioned(
+                    right: width * 0.01,
+                    top: math.sin(progress + 1.7) * 7,
+                    child: _FloatingPhotoCard(
+                      assetPath: 'assets/landing/hero-brunch.jpg',
+                      width: width * 0.46,
+                      height: height * 0.54,
+                      angle: 0.1,
+                      borderColor: AppTheme.lampone,
+                    ),
+                  ),
+                  Positioned(
+                    left: width * 0.28,
+                    bottom: height * 0.02 + math.sin(progress + 3.2) * 6,
+                    child: _FloatingPhotoCard(
+                      assetPath: 'assets/landing/hero-dinner.jpg',
+                      width: width * 0.6,
+                      height: height * 0.42,
+                      angle: -0.035,
+                      borderColor: AppTheme.limone,
+                    ),
+                  ),
+                  Positioned(
+                    left: width * 0.04,
+                    bottom: height * 0.12,
+                    child: const CinCinSticker(
+                      label: 'cin cin!',
+                      color: AppTheme.lampone,
+                      angle: -0.16,
+                      fontSize: 18,
+                    ),
+                  ),
+                  Positioned(
+                    right: width * 0.02,
+                    top: height * 0.5,
+                    child: const CinCinSticker(
+                      label: 'POSTI LIBERI',
+                      angle: 0.12,
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }
@@ -424,12 +414,14 @@ class _FloatingPhotoCard extends StatelessWidget {
     required this.width,
     required this.height,
     required this.angle,
+    required this.borderColor,
   });
 
   final String assetPath;
   final double width;
   final double height;
   final double angle;
+  final Color borderColor;
 
   @override
   Widget build(BuildContext context) {
@@ -438,18 +430,20 @@ class _FloatingPhotoCard extends StatelessWidget {
       child: Container(
         width: width,
         height: height,
+        padding: const EdgeInsets.all(5),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(28),
+          color: borderColor,
+          borderRadius: BorderRadius.circular(26),
           boxShadow: const [
             BoxShadow(
-              color: Color(0x22000000),
-              blurRadius: 18,
-              offset: Offset(0, 10),
+              color: Color(0x66000000),
+              blurRadius: 24,
+              offset: Offset(0, 12),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(21),
           child: Image.asset(
             assetPath,
             fit: BoxFit.cover,
@@ -462,55 +456,58 @@ class _FloatingPhotoCard extends StatelessWidget {
 
 class _LandingStepCard extends StatelessWidget {
   const _LandingStepCard({
+    required this.number,
+    required this.accent,
     required this.title,
     required this.body,
   });
 
+  final int number;
+  final Color accent;
   final String title;
   final String body;
 
   @override
   Widget build(BuildContext context) {
-    final darkPalette = AppTheme.useMusicAiPalette;
+    final textTheme = Theme.of(context).textTheme;
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(18),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: darkPalette
-            ? AppTheme.surfaceGradient
-            : const LinearGradient(
-                colors: [Color(0xFFFFFCF7), Color(0xFFF7EFE3)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color:
-              AppTheme.cardBorder.withValues(alpha: darkPalette ? 0.9 : 0.82),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color:
-                darkPalette ? const Color(0x52000000) : const Color(0x12000000),
-            blurRadius: 16,
-            offset: Offset(0, 8),
-          ),
-        ],
+        color: AppTheme.velluto,
+        borderRadius: BorderRadius.circular(24),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontSize: 18,
-                ),
+          Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: accent,
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              '$number',
+              style: const TextStyle(
+                fontFamily: AppTheme.displayFont,
+                fontWeight: FontWeight.w800,
+                fontSize: 19,
+                color: AppTheme.onAccent,
+              ),
+            ),
           ),
-          const SizedBox(height: 6),
-          Text(
-            body,
-            textAlign: TextAlign.center,
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: textTheme.titleMedium),
+                const SizedBox(height: 4),
+                Text(body, style: textTheme.bodyMedium),
+              ],
+            ),
           ),
         ],
       ),
@@ -531,69 +528,35 @@ class _LandingInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final darkPalette = AppTheme.useMusicAiPalette;
+    final textTheme = Theme.of(context).textTheme;
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(18),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: highlighted
-              ? (darkPalette
-                  ? const [Color(0xFF1F2950), Color(0xFF293667)]
-                  : const [Color(0xFFFFF7E9), Color(0xFFF9E3BF)])
-              : (darkPalette
-                  ? const [Color(0xFF121A31), Color(0xFF182341)]
-                  : const [Color(0xFFFFFCF7), Color(0xFFF7EFE3)]),
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: highlighted ? AppTheme.spritz : AppTheme.velluto,
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color: highlighted
-              ? (darkPalette
-                  ? AppTheme.orange.withValues(alpha: 0.78)
-                  : const Color(0xFFE0BB74))
-              : AppTheme.cardBorder,
-          width: highlighted ? 1.4 : 1,
-        ),
-        boxShadow: highlighted
-            ? [
-                BoxShadow(
-                  color: darkPalette
-                      ? const Color(0x4A1C2E6D)
-                      : const Color(0x1A7A4A00),
-                  blurRadius: 18,
-                  offset: Offset(0, 10),
-                ),
-              ]
-            : null,
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (highlighted) ...[
+            const CinCinSticker(label: 'PRESTO', angle: -0.05),
+            const SizedBox(height: 12),
+          ],
           Text(
             title,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontSize: highlighted ? 22 : 18,
-                  fontWeight: highlighted ? FontWeight.w900 : FontWeight.w800,
-                  color: highlighted
-                      ? AppTheme.espresso
-                      : (darkPalette ? AppTheme.espresso : AppTheme.brown),
-                ),
+            style: textTheme.titleLarge?.copyWith(
+              fontSize: highlighted ? 25 : 20,
+              color: highlighted ? AppTheme.onAccent : AppTheme.panna,
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             body,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  height: 1.45,
-                  fontSize: highlighted ? 16.5 : null,
-                  fontWeight: highlighted ? FontWeight.w600 : FontWeight.w500,
-                  color: highlighted
-                      ? (darkPalette ? AppTheme.brown : AppTheme.espresso)
-                      : AppTheme.brown,
-                ),
+            style: textTheme.bodyLarge?.copyWith(
+              fontWeight: highlighted ? FontWeight.w600 : FontWeight.w500,
+              color: highlighted ? AppTheme.onAccent : AppTheme.lavandaChiara,
+            ),
           ),
         ],
       ),
@@ -610,15 +573,12 @@ class _LandingNoticeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final darkPalette = AppTheme.useMusicAiPalette;
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: darkPalette
-            ? AppTheme.paper.withValues(alpha: 0.96)
-            : Colors.white.withValues(alpha: 0.86),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppTheme.cardBorder),
+        color: AppTheme.velluto,
+        borderRadius: BorderRadius.circular(24),
       ),
       child: Text(
         message,
@@ -641,138 +601,108 @@ class _PublicOfferCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final darkPalette = AppTheme.useMusicAiPalette;
-    final mealColor = _mealColor(offer.tipoPasto);
+    final textTheme = Theme.of(context).textTheme;
+    final photoFilename = offer.coverPhotoFilename;
+    final photoUrl =
+        photoFilename != null ? apiClient.buildUploadUrl(photoFilename) : null;
     final authorPhotoUrl = offer.autoreFoto.isNotEmpty
         ? apiClient.buildUploadUrl(offer.autoreFoto)
         : null;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      decoration: BoxDecoration(
-        color: darkPalette
-            ? AppTheme.paper.withValues(alpha: 0.98)
-            : Colors.white.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(
-          color: darkPalette
-              ? AppTheme.cardBorder.withValues(alpha: 0.9)
-              : Colors.white.withValues(alpha: 0.9),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color:
-                darkPalette ? const Color(0x56000000) : const Color(0x16000000),
-            blurRadius: 18,
-            offset: Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Align(
-              alignment: Alignment.center,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  color: mealColor.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  offer.tipoPasto.toUpperCase(),
-                  style: TextStyle(
-                    color: mealColor,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              offer.nomeLocale,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _formatWhenLabel(offer.dataOra),
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontWeight: FontWeight.w800,
-                color: AppTheme.brown,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Material(
+        color: AppTheme.velluto,
+        borderRadius: BorderRadius.circular(28),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                CircleAvatar(
-                  radius: 36,
-                  backgroundImage: authorPhotoUrl != null
-                      ? NetworkImage(authorPhotoUrl)
-                      : null,
-                  child: authorPhotoUrl == null
-                      ? const Icon(Icons.person, size: 30)
-                      : null,
+                OfferPhoto(
+                  imageUrl: photoUrl,
+                  tipoPasto: offer.tipoPasto,
+                  height: 140,
+                  overlay: [
+                    Positioned(
+                      left: 10,
+                      top: 10,
+                      child: MealSticker(tipoPasto: offer.tipoPasto),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Flexible(
-                  child: RichText(
-                    textAlign: TextAlign.center,
-                    text: TextSpan(
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppTheme.brown,
-                            height: 1.35,
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 12, 10, 6),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _formatWhenLabel(offer.dataOra),
+                        style: const TextStyle(
+                          color: AppTheme.limone,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 13.5,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(offer.nomeLocale, style: textTheme.headlineSmall),
+                      if (offer.indirizzo.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          offer.indirizzo,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: AppTheme.lavanda,
                           ),
-                      children: [
-                        const TextSpan(text: 'Offerto da '),
-                        TextSpan(
-                          text: offer.autoreNome,
-                          style: const TextStyle(fontWeight: FontWeight.w900),
                         ),
                       ],
-                    ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 18,
+                            backgroundColor: AppTheme.vellutoChiaro,
+                            backgroundImage: authorPhotoUrl != null
+                                ? NetworkImage(authorPhotoUrl)
+                                : null,
+                            child: authorPhotoUrl == null
+                                ? const Icon(Icons.person, size: 18)
+                                : null,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Offre ${offer.autoreNome}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: textTheme.titleSmall,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          FilledButton(
+                            onPressed: onTap,
+                            style: FilledButton.styleFrom(
+                              minimumSize: const Size(0, 44),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 18),
+                            ),
+                            child: const Text('Approfitta'),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                color: AppTheme.mist,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppTheme.cardBorder),
-              ),
-              child: Text(
-                offer.indirizzo,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: AppTheme.espresso,
-                  fontWeight: FontWeight.w700,
-                  height: 1.35,
-                ),
-              ),
-            ),
-            const SizedBox(height: 14),
-            FilledButton(
-              onPressed: onTap,
-              child: const Text('Cosa aspetti, approfitta'),
-            ),
-          ],
+          ),
         ),
       ),
     );
-  }
-
-  Color _mealColor(String type) {
-    return AppTheme.offerGreen;
   }
 
   String _formatWhenLabel(DateTime value) {

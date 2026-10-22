@@ -355,7 +355,7 @@ class _HomeShellState extends State<HomeShell> {
                   content: Row(
                     children: [
                       const Icon(Icons.notifications_active,
-                          color: Colors.white, size: 20),
+                          color: AppTheme.onAccent, size: 20),
                       const SizedBox(width: 12),
                       Expanded(
                           child: Text(message,
@@ -363,11 +363,11 @@ class _HomeShellState extends State<HomeShell> {
                                   fontWeight: FontWeight.w700))),
                     ],
                   ),
-                  backgroundColor: const Color(0xFFE07800),
+                  backgroundColor: AppTheme.spritz,
                   duration: const Duration(days: 1),
                   action: SnackBarAction(
                     label: 'Apri',
-                    textColor: Colors.white,
+                    textColor: AppTheme.onAccent,
                     onPressed: () {
                       if (!mounted) {
                         return;
@@ -585,101 +585,105 @@ class _HomeShellState extends State<HomeShell> {
           children: pages,
         ),
       ),
-      bottomNavigationBar: DecoratedBox(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.vividViolet.withValues(alpha: 0.30),
-              blurRadius: 24,
-              spreadRadius: 2,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: NavigationBar(
-          height: 72,
-          indicatorColor: AppTheme.vividViolet.withValues(alpha: 0.30),
-          shadowColor: AppTheme.vividViolet.withValues(alpha: 0.62),
-          selectedIndex: selectedIndex,
-          labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>((states) {
-            final selected = states.contains(WidgetState.selected);
-            return TextStyle(
-              fontSize: 11,
-              fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
-              color: selected
-                  ? Colors.white
-                  : AppTheme.brown.withValues(alpha: 0.86),
-              height: 1.05,
-            );
-          }),
-          destinations: _isAdminUser
-              ? const [
-                  NavigationDestination(
-                    icon: Icon(Icons.admin_panel_settings_outlined),
-                    selectedIcon: Icon(Icons.admin_panel_settings_rounded),
-                    label: 'Admin',
-                  ),
-                ]
-              : [
-                  const NavigationDestination(
-                    icon: Icon(Icons.restaurant_menu_outlined),
-                    selectedIcon: Icon(Icons.restaurant_menu_rounded),
-                    label: 'Approfitta',
-                  ),
-                  const NavigationDestination(
-                    icon: Padding(
-                      padding: EdgeInsets.only(bottom: 2),
-                      child: Icon(Icons.groups_rounded),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(30),
+          child: NavigationBar(
+            height: 70,
+            selectedIndex: selectedIndex,
+            destinations: _isAdminUser
+                ? const [
+                    NavigationDestination(
+                      icon: Icon(Icons.admin_panel_settings_outlined),
+                      selectedIcon: Icon(Icons.admin_panel_settings_rounded),
+                      label: 'Admin',
                     ),
-                    selectedIcon: Padding(
-                      padding: EdgeInsets.only(bottom: 2),
-                      child: Icon(Icons.groups),
+                  ]
+                : [
+                    const NavigationDestination(
+                      icon: Icon(Icons.restaurant_menu_outlined),
+                      selectedIcon: Icon(Icons.restaurant_menu_rounded),
+                      label: 'Approfitta',
                     ),
-                    label: 'Community',
-                  ),
-                  const NavigationDestination(
-                    icon: Icon(Icons.forum_outlined),
-                    selectedIcon: Icon(Icons.forum_rounded),
-                    label: 'Chat',
-                  ),
-                  const NavigationDestination(
-                    icon: Icon(Icons.add_circle_outline),
-                    selectedIcon: Icon(Icons.add_circle),
-                    label: 'Offri',
-                  ),
-                  NavigationDestination(
-                    icon: _ProfileTabIcon(
-                      selected: false,
-                      hasManagementAlert: _hasReviewsToManage(),
-                      hasNotificationAlert: _unreadNotificationCount > 0,
+                    const NavigationDestination(
+                      icon: Padding(
+                        padding: EdgeInsets.only(bottom: 2),
+                        child: Icon(Icons.groups_rounded),
+                      ),
+                      selectedIcon: Padding(
+                        padding: EdgeInsets.only(bottom: 2),
+                        child: Icon(Icons.groups),
+                      ),
+                      label: 'Community',
                     ),
-                    selectedIcon: _ProfileTabIcon(
-                      selected: true,
-                      hasManagementAlert: _hasReviewsToManage(),
-                      hasNotificationAlert: _unreadNotificationCount > 0,
+                    const NavigationDestination(
+                      icon: Icon(Icons.forum_outlined),
+                      selectedIcon: Icon(Icons.forum_rounded),
+                      label: 'Chat',
                     ),
-                    label: 'Io',
-                  ),
-                ],
-          onDestinationSelected: (index) {
-            if (!_isAdminUser &&
-                index == _profileTabIndex &&
-                _unreadNotificationCount > 0) {
-              setState(() {
-                _selectedIndex = _profileTabIndex;
-                _notificationCenterRequest++;
-              });
-              return;
-            }
-            if (index == _selectedIndex) {
-              if (!_isAdminUser && index == 0) {
-                unawaited(_offersController.loadOffers());
+                    const NavigationDestination(
+                      icon: _OfferTabIcon(),
+                      selectedIcon: _OfferTabIcon(),
+                      label: 'Offri',
+                    ),
+                    NavigationDestination(
+                      icon: _ProfileTabIcon(
+                        selected: false,
+                        hasManagementAlert: _hasReviewsToManage(),
+                        hasNotificationAlert: _unreadNotificationCount > 0,
+                      ),
+                      selectedIcon: _ProfileTabIcon(
+                        selected: true,
+                        hasManagementAlert: _hasReviewsToManage(),
+                        hasNotificationAlert: _unreadNotificationCount > 0,
+                      ),
+                      label: 'Io',
+                    ),
+                  ],
+            onDestinationSelected: (index) {
+              if (!_isAdminUser &&
+                  index == _profileTabIndex &&
+                  _unreadNotificationCount > 0) {
+                setState(() {
+                  _selectedIndex = _profileTabIndex;
+                  _notificationCenterRequest++;
+                });
+                return;
               }
-              return;
-            }
-            setState(() => _selectedIndex = index);
-          },
+              if (index == _selectedIndex) {
+                if (!_isAdminUser && index == 0) {
+                  unawaited(_offersController.loadOffers());
+                }
+                return;
+              }
+              setState(() => _selectedIndex = index);
+            },
+          ),
         ),
+      ),
+    );
+  }
+}
+
+/// «Offri» è l'azione principale: un bottone Spritz anche dentro la barra.
+class _OfferTabIcon extends StatelessWidget {
+  const _OfferTabIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 34,
+      height: 34,
+      decoration: const BoxDecoration(
+        color: AppTheme.spritz,
+        shape: BoxShape.circle,
+      ),
+      child: const Icon(
+        Icons.add_rounded,
+        color: AppTheme.onAccent,
+        size: 24,
       ),
     );
   }
@@ -717,14 +721,11 @@ class _ProfileTabIcon extends StatelessWidget {
                 width: hasNotificationAlert ? 21 : 17,
                 height: hasNotificationAlert ? 21 : 17,
                 decoration: BoxDecoration(
-                  color: hasNotificationAlert
-                      ? const Color(0xFFFFD43B)
-                      : AppTheme.orange,
+                  color:
+                      hasNotificationAlert ? AppTheme.limone : AppTheme.orange,
                   borderRadius: BorderRadius.circular(999),
                   border: Border.all(
-                    color: hasNotificationAlert
-                        ? AppTheme.vividViolet
-                        : AppTheme.paper,
+                    color: AppTheme.paper,
                     width: hasNotificationAlert ? 2 : 1.2,
                   ),
                   boxShadow: hasNotificationAlert
@@ -740,9 +741,7 @@ class _ProfileTabIcon extends StatelessWidget {
                 child: Icon(
                   Icons.notifications_rounded,
                   size: hasNotificationAlert ? 13 : 10,
-                  color: hasNotificationAlert
-                      ? const Color(0xFF251057)
-                      : Colors.white,
+                  color: AppTheme.onAccent,
                 ),
               ),
             ),

@@ -5,8 +5,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/network/api_client.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/widgets/brand_hero_card.dart';
 import '../../core/widgets/brand_wordmark.dart';
+import '../../core/widgets/cin_cin_widgets.dart';
 import '../../models/offer.dart';
 import '../auth/auth_controller.dart';
 import 'offer_card.dart';
@@ -31,9 +31,29 @@ class OffersPage extends StatefulWidget {
 }
 
 class _OffersPageState extends State<OffersPage> {
+  static const _mealFilters = [
+    ('Aperitivi', 'ape'),
+    ('Colazioni', 'colazione'),
+    ('Pranzi', 'pranzo'),
+    ('Cene', 'cena'),
+  ];
+
   double? _distancePreferenceDraft;
   bool _isSavingDistance = false;
   bool _isDistanceCardExpanded = false;
+
+  String _greeting(String? fullName) {
+    final firstName = (fullName ?? '').trim().split(RegExp(r'\s+')).first;
+    final hour = DateTime.now().hour;
+    final question = hour >= 5 && hour < 11
+        ? 'che colazione si fa?'
+        : hour >= 11 && hour < 15
+            ? 'chi viene a pranzo?'
+            : 'stasera si esce?';
+    return firstName.isEmpty
+        ? 'Ciao,\n$question'
+        : 'Ciao $firstName,\n$question';
+  }
 
   int _normalizeDistanceForUi(int rawValue) {
     return rawValue.clamp(
@@ -390,91 +410,62 @@ class _OffersPageState extends State<OffersPage> {
               slivers: [
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-                    child: BrandHeroCard(
-                      eyebrow: 'APPROFITTA',
-                      title: 'Eventi aperti della community',
-                      subtitle:
-                          'Scegli colazione, pranzo o cena e apri gli eventi che ti interessano.',
-                      centered: true,
-                      footer: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          _MealChip(
-                            label: 'APERITIVI',
-                            value: 'ape',
-                            selected:
-                                widget.offersController.selectedMealType ==
-                                    'ape',
-                            onTap: widget.offersController.toggleMealType,
-                            flex: 3,
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          _greeting(user?.nome),
+                          style: Theme.of(context).textTheme.headlineLarge,
+                        ),
+                        const SizedBox(height: 16),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          clipBehavior: Clip.none,
+                          child: Row(
                             children: [
-                              Expanded(
-                                child: _MealChip(
-                                  label: 'Colazioni',
-                                  value: 'colazione',
+                              for (final meal in _mealFilters) ...[
+                                _MealChip(
+                                  label: meal.$1,
+                                  value: meal.$2,
                                   selected: widget
                                           .offersController.selectedMealType ==
-                                      'colazione',
+                                      meal.$2,
                                   onTap: widget.offersController.toggleMealType,
                                 ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: _MealChip(
-                                  label: 'Pranzi',
-                                  value: 'pranzo',
-                                  selected: widget
-                                          .offersController.selectedMealType ==
-                                      'pranzo',
-                                  onTap: widget.offersController.toggleMealType,
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: _MealChip(
-                                  label: 'Cene',
-                                  value: 'cena',
-                                  selected: widget
-                                          .offersController.selectedMealType ==
-                                      'cena',
-                                  onTap: widget.offersController.toggleMealType,
-                                ),
-                              ),
+                                const SizedBox(width: 8),
+                              ],
                             ],
                           ),
-                          const SizedBox(height: 10),
-                          _DistancePreferenceControl(
-                            valueKm: _normalizeDistanceForUi(
+                        ),
+                        const SizedBox(height: 12),
+                        _DistancePreferenceControl(
+                          valueKm: _normalizeDistanceForUi(
+                            distanceDraft.round(),
+                          ),
+                          isSaving: _isSavingDistance,
+                          isExpanded: _isDistanceCardExpanded,
+                          distanceLabel: _distanceLabelText(
+                            _normalizeDistanceForUi(
                               distanceDraft.round(),
                             ),
-                            isSaving: _isSavingDistance,
-                            isExpanded: _isDistanceCardExpanded,
-                            distanceLabel: _distanceLabelText(
-                              _normalizeDistanceForUi(
-                                distanceDraft.round(),
-                              ),
-                            ),
-                            onChanged: (value) {
-                              setState(() => _distancePreferenceDraft = value);
-                            },
-                            onToggle: () {
-                              setState(
-                                () => _isDistanceCardExpanded =
-                                    !_isDistanceCardExpanded,
-                              );
-                            },
-                            onSave: _saveDistancePreference,
-                            isDirty: _normalizeDistanceForUi(
-                                  distanceDraft.round(),
-                                ) !=
-                                currentActionRadius,
                           ),
-                        ],
-                      ),
+                          onChanged: (value) {
+                            setState(() => _distancePreferenceDraft = value);
+                          },
+                          onToggle: () {
+                            setState(
+                              () => _isDistanceCardExpanded =
+                                  !_isDistanceCardExpanded,
+                            );
+                          },
+                          onSave: _saveDistancePreference,
+                          isDirty: _normalizeDistanceForUi(
+                                distanceDraft.round(),
+                              ) !=
+                              currentActionRadius,
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -486,17 +477,15 @@ class _OffersPageState extends State<OffersPage> {
                           _ProfileOffersReminder(onTap: widget.onGoToProfile),
                     ),
                   ),
-                const SliverToBoxAdapter(
+                SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.fromLTRB(20, 4, 20, 8),
+                    padding: const EdgeInsets.fromLTRB(20, 6, 20, 12),
                     child: Text(
                       'Tutti gli eventi aperti',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.brown,
-                      ),
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
+                          ?.copyWith(fontSize: 22),
                     ),
                   ),
                 ),
@@ -564,53 +553,35 @@ class _ProfileOffersReminder extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(22),
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [
-                Color(0xFF6A4CFF),
-                Color(0xFF4C37C9),
-                Color(0xFF1B2D88),
-              ],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: AppTheme.vividViolet.withValues(alpha: 0.42),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.vividViolet.withValues(alpha: 0.22),
-                blurRadius: 18,
-                offset: const Offset(0, 8),
-              ),
-            ],
+            color: AppTheme.spritz,
+            borderRadius: BorderRadius.circular(22),
           ),
-          child: Row(
+          child: const Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.event_note_rounded,
-                color: Colors.white,
+                color: AppTheme.onAccent,
                 size: 22,
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: Text(
                   'Gestisci i tuoi eventi dal profilo.',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppTheme.onAccent,
                     fontWeight: FontWeight.w800,
                     fontSize: 15,
                   ),
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.chevron_right_rounded,
-                color: Colors.white,
+                color: AppTheme.onAccent,
                 size: 24,
               ),
             ],
@@ -634,138 +605,188 @@ class _OfferPreviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mealColor = _mealColor(offer.tipoPasto);
+    final textTheme = Theme.of(context).textTheme;
     final isUpcoming = offer.dataOra.toLocal().isAfter(DateTime.now());
     final authorPhotoUrl = offer.autoreFoto.isNotEmpty
         ? apiClient.buildUploadUrl(offer.autoreFoto)
         : null;
-    final occupiedSeats = (offer.postiTotali - offer.postiDisponibili)
-        .clamp(0, offer.postiTotali);
+    final photoFilename = offer.coverPhotoFilename;
+    final photoUrl =
+        photoFilename != null ? apiClient.buildUploadUrl(photoFilename) : null;
+    final freeSeats = offer.postiDisponibili.clamp(0, offer.postiTotali);
     final canManageReminders = isUpcoming &&
         (offer.isOwn || offer.alreadyClaimed || offer.claimStatus == 'claimed');
+    final showLastSeats =
+        !offer.isOwn && isUpcoming && freeSeats > 0 && freeSeats <= 2;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 14),
-      child: Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          gradient: AppTheme.elevatedSurfaceGradient,
-          borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: AppTheme.cardBorder),
-          boxShadow: const [
-            BoxShadow(
-              color: AppTheme.shadow,
-              blurRadius: 22,
-              offset: Offset(0, 12),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      child: Material(
+        color: AppTheme.velluto,
+        borderRadius: BorderRadius.circular(28),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onOpen,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundImage: authorPhotoUrl != null
-                      ? NetworkImage(authorPhotoUrl)
-                      : null,
-                  child:
-                      authorPhotoUrl == null ? const Icon(Icons.person) : null,
+                OfferPhoto(
+                  imageUrl: photoUrl,
+                  tipoPasto: offer.tipoPasto,
+                  height: 150,
+                  overlay: [
+                    Positioned(
+                      left: 10,
+                      top: 10,
+                      child: MealSticker(tipoPasto: offer.tipoPasto),
+                    ),
+                    if (offer.isOwn)
+                      const Positioned(
+                        right: 10,
+                        top: 10,
+                        child: CinCinSticker(
+                          label: 'IL TUO EVENTO',
+                          color: AppTheme.panna,
+                          angle: 0.04,
+                        ),
+                      )
+                    else if (showLastSeats)
+                      Positioned(
+                        right: 10,
+                        bottom: 10,
+                        child: CinCinSticker(
+                          label: freeSeats == 1
+                              ? 'ULTIMO POSTO'
+                              : 'ULTIMI $freeSeats POSTI',
+                          angle: 0.06,
+                        ),
+                      ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 12, 10, 8),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        offer.autoreNome,
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w900,
-                                  color: AppTheme.espresso,
-                                ),
+                        _formatWhenLabel(context, offer.dataOra),
+                        style: const TextStyle(
+                          color: AppTheme.limone,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 13.5,
+                        ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        offer.nomeLocale,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.brown,
-                            ),
-                      ),
+                      const SizedBox(height: 2),
+                      Text(offer.nomeLocale, style: textTheme.headlineSmall),
                       if (offer.cityLabel.isNotEmpty) ...[
                         const SizedBox(height: 2),
                         Text(
                           offer.cityLabel,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(
-                                color: AppTheme.brown.withValues(alpha: 0.7),
-                              ),
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: AppTheme.lavanda,
+                          ),
                         ),
                       ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  child: _CompactInfoChip(
-                    label: offer.tipoPasto.toUpperCase(),
-                    backgroundColor: mealColor.withValues(alpha: 0.14),
-                    foregroundColor: mealColor,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _CompactInfoChip(
-                          label: _formatWhenLabel(context, offer.dataOra),
-                          backgroundColor: AppTheme.mist,
-                          foregroundColor: AppTheme.brown,
-                        ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 20,
+                            backgroundColor: AppTheme.vellutoChiaro,
+                            backgroundImage: authorPhotoUrl != null
+                                ? NetworkImage(authorPhotoUrl)
+                                : null,
+                            child: authorPhotoUrl == null
+                                ? const Icon(Icons.person, size: 20)
+                                : null,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Offre ${offer.autoreNome}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: textTheme.titleSmall,
+                                ),
+                                if (offer.autoreRatingCount > 0)
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.star_rounded,
+                                        size: 15,
+                                        color: AppTheme.limone,
+                                      ),
+                                      const SizedBox(width: 3),
+                                      Text(
+                                        '${offer.autoreRatingAverage.toStringAsFixed(1)} · ${offer.autoreRatingCount} recensioni',
+                                        style: textTheme.bodySmall,
+                                      ),
+                                    ],
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      if (canManageReminders) ...[
-                        const SizedBox(width: 6),
-                        _CompactReminderButton(
-                          offer: offer,
-                          apiClient: apiClient,
-                        ),
-                      ],
+                      const SizedBox(height: 14),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SeatDots(
+                                  total: offer.postiTotali,
+                                  free: freeSeats,
+                                  size: 13,
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  freeSeats == 0
+                                      ? 'Al completo'
+                                      : freeSeats == 1
+                                          ? '1 posto libero'
+                                          : '$freeSeats posti liberi',
+                                  style: textTheme.titleSmall?.copyWith(
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (canManageReminders) ...[
+                            _CompactReminderButton(
+                              offer: offer,
+                              apiClient: apiClient,
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+                          FilledButton(
+                            onPressed: onOpen,
+                            style: FilledButton.styleFrom(
+                              minimumSize: const Size(0, 44),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 18),
+                            ),
+                            child: const Text('Apri evento'),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              'Partecipanti $occupiedSeats di ${offer.postiTotali}',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppTheme.brown,
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-            const SizedBox(height: 14),
-            OutlinedButton(
-              onPressed: onOpen,
-              child: const Text('Apri evento'),
-            ),
-          ],
+          ),
         ),
       ),
     );
-  }
-
-  Color _mealColor(String type) {
-    return AppTheme.offerGreen;
   }
 
   String _formatWhenLabel(BuildContext context, DateTime value) {
@@ -828,40 +849,6 @@ class _OfferPreviewCard extends StatelessWidget {
   }
 }
 
-class _CompactInfoChip extends StatelessWidget {
-  const _CompactInfoChip({
-    required this.label,
-    required this.backgroundColor,
-    required this.foregroundColor,
-  });
-
-  final String label;
-  final Color backgroundColor;
-  final Color foregroundColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        textAlign: TextAlign.center,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: foregroundColor,
-          fontWeight: FontWeight.w800,
-          fontSize: 12.5,
-        ),
-      ),
-    );
-  }
-}
-
 class _CompactReminderButton extends StatefulWidget {
   const _CompactReminderButton({
     required this.offer,
@@ -919,12 +906,11 @@ class _CompactReminderButtonState extends State<_CompactReminderButton> {
   @override
   Widget build(BuildContext context) {
     final hasReminders = _reminderMinutes.isNotEmpty;
-    final reminderBackground = AppTheme.useMusicAiPalette
+    final reminderBackground = AppTheme.isDarkPalette
         ? AppTheme.orange.withValues(alpha: 0.28)
         : const Color(0xFFFFD54F).withValues(alpha: 0.85);
-    final reminderIconColor = AppTheme.useMusicAiPalette
-        ? AppTheme.espresso
-        : const Color(0xFF8D6E00);
+    final reminderIconColor =
+        AppTheme.isDarkPalette ? AppTheme.espresso : const Color(0xFF8D6E00);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -1087,11 +1073,11 @@ class _ReminderDialogState extends State<_ReminderDialog> {
                 label: Text('$minutes min'),
                 selected: isSelected,
                 onSelected: (_) => _toggleOption(minutes),
-                selectedColor: AppTheme.useMusicAiPalette
+                selectedColor: AppTheme.isDarkPalette
                     ? AppTheme.orange.withValues(alpha: 0.38)
                     : const Color(0xFFFFD54F),
                 labelStyle: TextStyle(
-                  color: AppTheme.useMusicAiPalette ? AppTheme.espresso : null,
+                  color: AppTheme.isDarkPalette ? AppTheme.espresso : null,
                   fontWeight: FontWeight.w700,
                 ),
               );
@@ -1124,56 +1110,51 @@ class _MealChip extends StatelessWidget {
     required this.value,
     required this.selected,
     required this.onTap,
-    this.flex = 1,
   });
 
   final String label;
   final String value;
   final bool selected;
   final Future<void> Function(String) onTap;
-  final int flex;
 
   @override
   Widget build(BuildContext context) {
-    const darkPalette = AppTheme.useMusicAiPalette;
-    final chip = SizedBox(
-      height: 48,
-      child: FilterChip(
-        selected: selected,
-        label: SizedBox(
-          width: double.infinity,
-          child: Text(label, textAlign: TextAlign.center),
+    final mealColor = AppTheme.mealColor(value);
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: Material(
+        color: selected ? mealColor : AppTheme.velluto,
+        shape: const StadiumBorder(),
+        child: InkWell(
+          customBorder: const StadiumBorder(),
+          onTap: () => onTap(value),
+          child: Container(
+            height: 44,
+            padding: const EdgeInsets.fromLTRB(12, 0, 16, 0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  AppTheme.mealIcon(value),
+                  size: 19,
+                  color: selected ? AppTheme.onAccent : mealColor,
+                ),
+                const SizedBox(width: 7),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: selected ? AppTheme.onAccent : AppTheme.panna,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-        onSelected: (_) => onTap(value),
-        backgroundColor: darkPalette
-            ? AppTheme.sand
-            : AppTheme.paper.withValues(alpha: 0.92),
-        selectedColor: _colorForValue(value).withValues(
-          alpha: darkPalette ? 0.34 : 0.22,
-        ),
-        side: BorderSide(color: _colorForValue(value).withValues(alpha: 0.42)),
-        labelStyle: TextStyle(
-          color: selected
-              ? _colorForValue(value)
-              : (darkPalette ? AppTheme.espresso : null),
-          fontWeight: FontWeight.w700,
-        ),
-        labelPadding: const EdgeInsets.symmetric(horizontal: 4),
       ),
     );
-
-    if (flex == 1) {
-      return chip;
-    }
-
-    return Expanded(
-      flex: flex,
-      child: chip,
-    );
-  }
-
-  Color _colorForValue(String input) {
-    return AppTheme.offerGreen;
   }
 }
 
@@ -1202,18 +1183,10 @@ class _DistancePreferenceControl extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppTheme.paper.withValues(alpha: 0.96),
+        color: AppTheme.velluto,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppTheme.cardBorder),
-        boxShadow: const [
-          BoxShadow(
-            color: AppTheme.shadow,
-            blurRadius: 14,
-            offset: Offset(0, 8),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1260,7 +1233,7 @@ class _DistancePreferenceControl extends StatelessWidget {
                 overlayColor: AppTheme.orange.withValues(alpha: 0.14),
                 valueIndicatorColor: AppTheme.orange,
                 valueIndicatorTextStyle: const TextStyle(
-                  color: Colors.white,
+                  color: AppTheme.onAccent,
                   fontWeight: FontWeight.w800,
                 ),
               ),

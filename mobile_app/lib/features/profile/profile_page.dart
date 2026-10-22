@@ -1972,9 +1972,9 @@ class _ProfilePageState extends State<ProfilePage> {
         final totalPhotos = galleryUrls.length;
         final extraPhotoCount = totalPhotos > 0 ? totalPhotos - 1 : 0;
         final extraBadgeBackground =
-            AppTheme.useMusicAiPalette ? AppTheme.orange : AppTheme.espresso;
+            AppTheme.isDarkPalette ? AppTheme.orange : AppTheme.espresso;
         final extraBadgeTextColor =
-            AppTheme.useMusicAiPalette ? Colors.white : Colors.white;
+            AppTheme.isDarkPalette ? Colors.white : Colors.white;
         final photoUrl = user != null && user.photoFilename.isNotEmpty
             ? apiClient.buildUploadUrl(user.photoFilename)
             : null;
@@ -2105,7 +2105,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             Icon(
                               Icons.photo_library_outlined,
                               size: 18,
-                              color: AppTheme.useMusicAiPalette
+                              color: AppTheme.isDarkPalette
                                   ? AppTheme.orange
                                   : AppTheme.espresso,
                             ),
@@ -2916,7 +2916,7 @@ class _PendingReviewCard extends StatelessWidget {
                 child: FilledButton.icon(
                   onPressed: onReview,
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF7A4EC7),
+                    backgroundColor: AppTheme.lampone,
                   ),
                   icon: const Icon(Icons.rate_review_rounded),
                   label: Text(
@@ -4376,17 +4376,12 @@ class _PremiumRadarSheetState extends State<_PremiumRadarSheet> {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [
-                              AppTheme.vividViolet,
-                              Color(0xFF2368FF),
-                            ],
-                          ),
+                          color: AppTheme.limone,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: const Icon(
                           Icons.radar_rounded,
-                          color: Colors.white,
+                          color: AppTheme.onAccent,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -4464,7 +4459,7 @@ class _PremiumRadarSheetState extends State<_PremiumRadarSheet> {
                           '${radar.radiusKm.toStringAsFixed(0)} km - prossime ${radar.windowHours} ore',
                       subtitle:
                           'Calcolo basato su ${_locationSourceLabel(radar.locationSource)}.',
-                      color: const Color(0xFF2368FF),
+                      color: AppTheme.lilla,
                     ),
                     const SizedBox(height: 10),
                     _PremiumRadarFeatureTile(
@@ -5182,7 +5177,7 @@ class _ReviewsSectionState extends State<_ReviewsSection> {
                   children: [
                     const Icon(
                       Icons.rate_review_outlined,
-                      color: Color(0xFF7A4EC7),
+                      color: AppTheme.lilla,
                     ),
                     const SizedBox(width: 10),
                     Expanded(
@@ -5234,7 +5229,7 @@ class _ReviewsSectionState extends State<_ReviewsSection> {
                           );
                         },
                         icon: const Icon(Icons.inbox_rounded,
-                            color: Color(0xFF7A4EC7)),
+                            color: AppTheme.lilla),
                         label: Text('Ricevute (${received.length})'),
                       ),
                       const SizedBox(width: 12),
@@ -5250,7 +5245,7 @@ class _ReviewsSectionState extends State<_ReviewsSection> {
                           );
                         },
                         icon: const Icon(Icons.edit_note_rounded,
-                            color: Color(0xFF7A4EC7)),
+                            color: AppTheme.lilla),
                         label: Text('Effettuate (${given.length})'),
                       ),
                     ],
