@@ -27,15 +27,14 @@ class _ChatInboxPageState extends State<ChatInboxPage> {
   String? _error;
   List<_ChatListItem> _items = const [];
 
-  bool get _isDarkPalette => AppTheme.useMusicAiPalette;
-  Color get _bgTop =>
-      _isDarkPalette ? const Color(0xFF070A11) : const Color(0xFFFFFBF6);
+  bool get _isDarkPalette => AppTheme.isDarkPalette;
+  Color get _bgTop => _isDarkPalette ? AppTheme.notte : const Color(0xFFFFFBF6);
   Color get _bgBottom =>
-      _isDarkPalette ? const Color(0xFF12192A) : const Color(0xFFF6E8DA);
+      _isDarkPalette ? AppTheme.mist : const Color(0xFFF6E8DA);
   Color get _tileTextPrimary =>
-      _isDarkPalette ? const Color(0xFFEAF0FF) : AppTheme.brown;
+      _isDarkPalette ? AppTheme.panna : AppTheme.brown;
   Color get _tileTextSecondary =>
-      _isDarkPalette ? const Color(0xFFB8C3E5) : const Color(0xFF6E5A4E);
+      _isDarkPalette ? AppTheme.lavandaChiara : const Color(0xFF6E5A4E);
 
   @override
   void initState() {
@@ -186,7 +185,7 @@ class _ChatInboxPageState extends State<ChatInboxPage> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: _isDarkPalette
-                  ? const [Color(0xFF141D31), Color(0xFF1A2640)]
+                  ? const [AppTheme.velluto, AppTheme.velluto]
                   : const [Color(0xFFFFF9F2), Color(0xFFF4E1CD)],
             ),
           ),
@@ -201,9 +200,7 @@ class _ChatInboxPageState extends State<ChatInboxPage> {
                 child: photoUrl == null
                     ? Icon(
                         Icons.person_rounded,
-                        color: _isDarkPalette
-                            ? const Color(0xFFEAF0FF)
-                            : AppTheme.brown,
+                        color: _isDarkPalette ? AppTheme.panna : AppTheme.brown,
                       )
                     : null,
               ),

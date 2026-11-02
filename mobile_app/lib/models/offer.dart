@@ -105,6 +105,16 @@ class Offer {
   final bool isFavoritePlace;
   final int favoritePlaceId;
 
+  /// Prima foto valida del locale, se c'è.
+  String? get coverPhotoFilename {
+    for (final filename in [fotoLocale, ...fotoLocaleGallery]) {
+      if (filename.isNotEmpty && filename != 'nessuna.jpg') {
+        return filename;
+      }
+    }
+    return null;
+  }
+
   factory Offer.fromJson(Map<String, dynamic> json) {
     final stato = (json['stato'] ?? '').toString();
     final dataOra = DateTime.parse(json['data_ora'] as String);

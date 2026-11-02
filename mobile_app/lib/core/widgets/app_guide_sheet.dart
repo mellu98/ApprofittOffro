@@ -456,15 +456,7 @@ class _PremiumGuideCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Color(0xFF2A145F),
-            Color(0xFF4C22B8),
-            Color(0xFF123EBA),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        gradient: AppTheme.heroGradient,
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
         boxShadow: [
@@ -570,13 +562,13 @@ class _PremiumFeatureTile extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFD34D),
+                  color: AppTheme.limone,
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
                   row.status,
                   style: const TextStyle(
-                    color: Color(0xFF251057),
+                    color: AppTheme.onAccent,
                     fontWeight: FontWeight.w900,
                     fontSize: 12,
                   ),
