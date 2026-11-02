@@ -11,6 +11,7 @@ import '../../models/app_guide.dart';
 import '../../models/favorite_place.dart';
 import '../../models/offer.dart';
 import '../../models/place_candidate.dart';
+import '../../models/place_suggestion.dart';
 import '../../models/premium_radar.dart';
 import '../../models/public_profile.dart';
 import '../../models/user_preview.dart';
@@ -785,13 +786,68 @@ class ApiClient {
         .toList();
   }
 
-  Future<PlaceCandidate> fetchPlaceDetails(String placeId) async {
+  Future<PlaceCandidate> fetchPlaceDetails(
+    String placeId, {
+    String? sessionToken,
+  }) async {
     final encodedId = Uri.encodeComponent(placeId);
-    final response = await _send(method: 'GET', path: '/api/places/$encodedId');
+    final query = sessionToken == null || sessionToken.isEmpty
+        ? ''
+        : '?${Uri(queryParameters: {'session': sessionToken}).query}';
+    final response =
+        await _send(method: 'GET', path: '/api/places/$encodedId$query');
     final payload = _decodeJson(response.body);
     _ensureSuccess(payload, response.statusCode);
     return PlaceCandidate.fromJson(
       (payload['place'] as Map<String, dynamic>? ?? <String, dynamic>{}),
+    );
+  }
+
+  /// Suggerimenti mentre si scrive: locali e zone (citta, quartieri, vie).
+  Future<List<PlaceSuggestion>> fetchPlaceSuggestions({
+    required String query,
+    double? latitude,
+    double? longitude,
+    String? sessionToken,
+  }) async {
+    final params = <String, String>{'q': query};
+    if (latitude != null && longitude != null) {
+      params['lat'] = latitude.toString();
+      params['lon'] = longitude.toString();
+    }
+    if (sessionToken != null && sessionToken.isNotEmpty) {
+      params['session'] = sessionToken;
+    }
+    final path =
+        '/api/places/autocomplete?${Uri(queryParameters: params).query}';
+    final response = await _send(method: 'GET', path: path);
+    final payload = _decodeJson(response.body);
+    _ensureSuccess(payload, response.statusCode);
+    return (payload['suggestions'] as List<dynamic>? ?? [])
+        .cast<Map<String, dynamic>>()
+        .map(PlaceSuggestion.fromJson)
+        .where((item) => item.id.isNotEmpty && item.title.isNotEmpty)
+        .toList();
+  }
+
+  /// Posizione di una zona (citta, quartiere, via) scelta dai suggerimenti.
+  Future<PlaceArea> fetchPlaceArea(
+    String placeId, {
+    String? sessionToken,
+  }) async {
+    final encodedId = Uri.encodeComponent(placeId);
+    final params = <String, String>{'mode': 'area'};
+    if (sessionToken != null && sessionToken.isNotEmpty) {
+      params['session'] = sessionToken;
+    }
+    final response = await _send(
+      method: 'GET',
+      path: '/api/places/$encodedId?${Uri(queryParameters: params).query}',
+    );
+    final payload = _decodeJson(response.body);
+    _ensureSuccess(payload, response.statusCode);
+    return PlaceArea.fromJson(
+      (payload['area'] as Map<String, dynamic>? ?? <String, dynamic>{}),
     );
   }
 

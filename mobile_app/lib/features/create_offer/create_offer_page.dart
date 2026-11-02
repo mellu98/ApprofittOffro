@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -18,8 +20,10 @@ import '../../core/widgets/brand_hero_card.dart';
 import '../../core/widgets/brand_wordmark.dart';
 import '../../models/offer.dart';
 import '../../models/place_candidate.dart';
+import '../../models/place_suggestion.dart';
 import '../auth/auth_controller.dart';
 import '../profile/profile_gallery_viewer_page.dart';
+import 'place_search_widgets.dart';
 
 class CreateOfferPage extends StatefulWidget {
   const CreateOfferPage({
@@ -80,9 +84,19 @@ class _CreateOfferPageState extends State<CreateOfferPage> {
   String? _selectedPlaceId;
   String _selectedPrimaryType = '';
   PlaceCandidate? _mapDraftSelection;
+  PlaceCandidate? _confirmedPlace;
   List<PlaceCandidate> _nearbyPlaces = const [];
   Set<Marker> _nearbyMarkers = const <Marker>{};
   final Map<String, BitmapDescriptor> _markerIconCache = {};
+  final TextEditingController _placeSearchController = TextEditingController();
+  final FocusNode _placeSearchFocus = FocusNode();
+  Timer? _placeSearchDebounce;
+  int _placeSearchRequestId = 0;
+  bool _searchingPlaces = false;
+  bool _placeSearchOpen = false;
+  String? _placeSearchError;
+  List<PlaceSuggestion> _placeSuggestions = const [];
+  String _placeSearchSessionToken = _newPlacesSessionToken();
   String? _confirmedShortNoticeSignature;
 
   int get _occupiedSeats {
@@ -226,6 +240,9 @@ class _CreateOfferPageState extends State<CreateOfferPage> {
     _scrollController.dispose();
     _mapPickerRefreshTick.dispose();
     _mapController?.dispose();
+    _placeSearchDebounce?.cancel();
+    _placeSearchController.dispose();
+    _placeSearchFocus.dispose();
     super.dispose();
   }
 
@@ -709,6 +726,9 @@ class _CreateOfferPageState extends State<CreateOfferPage> {
       },
     ).whenComplete(() {
       _mapPickerSheetContext = null;
+      _placeSearchDebounce?.cancel();
+      _placeSearchOpen = false;
+      _placeSearchFocus.unfocus();
       if (mounted && _mapDraftSelection != null) {
         setState(() => _mapDraftSelection = null);
         _refreshMapPicker();
@@ -764,13 +784,22 @@ class _CreateOfferPageState extends State<CreateOfferPage> {
               ),
               const SizedBox(height: 6),
               Text(
-                'Spostati dove vuoi, tocca un locale per caricarlo da Google oppure tocca un punto libero della mappa per usare direttamente quell\'indirizzo.',
+                'Cerca il locale per nome, oppure spostati sulla mappa e tocca un locale o un punto libero per usare quell\'indirizzo.',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: AppTheme.brown.withValues(alpha: 0.72),
                   height: 1.35,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
+              PlaceSearchField(
+                controller: _placeSearchController,
+                focusNode: _placeSearchFocus,
+                loading: _searchingPlaces,
+                enabled: !_submitting,
+                onChanged: _handlePlaceSearchChanged,
+                onClear: _clearPlaceSearch,
+              ),
+              const SizedBox(height: 12),
               Expanded(
                 child: Stack(
                   children: [
@@ -786,7 +815,7 @@ class _CreateOfferPageState extends State<CreateOfferPage> {
                         height: null,
                       ),
                     ),
-                    if (_mapDraftSelection != null)
+                    if (_mapDraftSelection != null && !_placeSearchOpen)
                       Positioned(
                         top: 12,
                         left: 12,
@@ -798,6 +827,20 @@ class _CreateOfferPageState extends State<CreateOfferPage> {
                                   _resolvingMapTapAddress
                               ? null
                               : _confirmMapSelection,
+                        ),
+                      ),
+                    if (_placeSearchOpen)
+                      Positioned(
+                        top: 12,
+                        left: 12,
+                        right: 12,
+                        child: PlaceSuggestionsPanel(
+                          suggestions: _placeSuggestions,
+                          loading: _searchingPlaces,
+                          errorText: _placeSearchError,
+                          query: _placeSearchController.text.trim(),
+                          onSelected: (suggestion) =>
+                              unawaited(_selectPlaceSuggestion(suggestion)),
                         ),
                       ),
                   ],
@@ -1130,11 +1173,13 @@ class _CreateOfferPageState extends State<CreateOfferPage> {
 
     setState(() => _loadingNearbyPlaces = true);
     final queryCenter = _currentMapCenter;
+    final radiusMeters = await _visibleMapRadiusMeters(queryCenter);
 
     try {
       final places = await widget.authController.apiClient.fetchNearbyPlaces(
         latitude: queryCenter.latitude,
         longitude: queryCenter.longitude,
+        radiusMeters: radiusMeters,
       );
       if (!mounted) {
         return;
@@ -1157,6 +1202,227 @@ class _CreateOfferPageState extends State<CreateOfferPage> {
     }
   }
 
+  static String _newPlacesSessionToken() {
+    final random = math.Random.secure();
+    final bytes = List<int>.generate(16, (_) => random.nextInt(256));
+    return base64Url.encode(bytes).replaceAll('=', '');
+  }
+
+  void _renewPlacesSessionToken() {
+    _placeSearchSessionToken = _newPlacesSessionToken();
+  }
+
+  /// Raggio della zona visibile sulla mappa, per cercare i locali di tutta l'area.
+  Future<int> _visibleMapRadiusMeters(LatLng center) async {
+    const fallback = 7000;
+    final controller = _mapController;
+    if (controller == null) {
+      return fallback;
+    }
+    try {
+      final bounds = await controller.getVisibleRegion();
+      final distance = Geolocator.distanceBetween(
+        center.latitude,
+        center.longitude,
+        bounds.northeast.latitude,
+        bounds.northeast.longitude,
+      );
+      if (distance.isNaN || distance <= 0) {
+        return fallback;
+      }
+      return distance.round().clamp(500, 20000);
+    } catch (_) {
+      return fallback;
+    }
+  }
+
+  void _handlePlaceSearchChanged(String value) {
+    _placeSearchDebounce?.cancel();
+    final query = value.trim();
+    if (query.length < 3) {
+      _placeSearchRequestId++;
+      setState(() {
+        _placeSearchOpen = query.isNotEmpty;
+        _placeSuggestions = const [];
+        _placeSearchError = null;
+        _searchingPlaces = false;
+      });
+      _refreshMapPicker();
+      return;
+    }
+    setState(() {
+      _placeSearchOpen = true;
+      _searchingPlaces = true;
+      _placeSearchError = null;
+    });
+    _refreshMapPicker();
+    _placeSearchDebounce = Timer(
+      const Duration(milliseconds: 350),
+      () => unawaited(_runPlaceSearch(query)),
+    );
+  }
+
+  Future<void> _runPlaceSearch(String query) async {
+    final requestId = ++_placeSearchRequestId;
+    final center = _currentMapCenter;
+    try {
+      final suggestions =
+          await widget.authController.apiClient.fetchPlaceSuggestions(
+        query: query,
+        latitude: center.latitude,
+        longitude: center.longitude,
+        sessionToken: _placeSearchSessionToken,
+      );
+      if (!mounted || requestId != _placeSearchRequestId) {
+        return;
+      }
+      setState(() {
+        _placeSuggestions = suggestions;
+        _placeSearchError = null;
+      });
+    } catch (_) {
+      if (!mounted || requestId != _placeSearchRequestId) {
+        return;
+      }
+      setState(() {
+        _placeSuggestions = const [];
+        _placeSearchError =
+            'La ricerca non risponde. Controlla la connessione e riprova.';
+      });
+    } finally {
+      if (mounted && requestId == _placeSearchRequestId) {
+        setState(() => _searchingPlaces = false);
+        _refreshMapPicker();
+      }
+    }
+  }
+
+  void _clearPlaceSearch() {
+    _placeSearchDebounce?.cancel();
+    _placeSearchRequestId++;
+    _placeSearchController.clear();
+    setState(() {
+      _placeSearchOpen = false;
+      _placeSuggestions = const [];
+      _placeSearchError = null;
+      _searchingPlaces = false;
+    });
+    _refreshMapPicker();
+  }
+
+  void _closePlaceSearch() {
+    _placeSearchDebounce?.cancel();
+    _placeSearchRequestId++;
+    _placeSearchFocus.unfocus();
+    setState(() {
+      _placeSearchOpen = false;
+      _searchingPlaces = false;
+    });
+    _refreshMapPicker();
+  }
+
+  Future<void> _selectPlaceSuggestion(PlaceSuggestion suggestion) async {
+    if (_submitting) {
+      return;
+    }
+    final sessionToken = _placeSearchSessionToken;
+    _renewPlacesSessionToken();
+    _closePlaceSearch();
+    _placeSearchController.text = suggestion.title;
+
+    if (suggestion.isArea) {
+      await _moveMapToArea(suggestion, sessionToken);
+      return;
+    }
+
+    setState(() => _resolvingMapTapAddress = true);
+    _refreshMapPicker();
+    try {
+      final details = await widget.authController.apiClient.fetchPlaceDetails(
+        suggestion.id,
+        sessionToken: sessionToken,
+      );
+      if (!mounted) {
+        return;
+      }
+      final place = PlaceCandidate(
+        id: suggestion.id,
+        name: suggestion.title,
+        address: suggestion.subtitle,
+        latitude: details.latitude,
+        longitude: details.longitude,
+        primaryType: details.primaryType,
+      ).mergeDetails(details);
+      if (place.latitude == 0 && place.longitude == 0) {
+        _showMessage('Non riesco a trovare la posizione di questo locale.');
+        return;
+      }
+      await _previewPlaceSelection(place);
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      final message = error.toString().contains('Seleziona solo')
+          ? 'Questo posto non è un bar o un ristorante: scegline un altro.'
+          : 'Non riesco a caricare questo locale. Riprova tra poco.';
+      _showMessage(message);
+    } finally {
+      if (mounted) {
+        setState(() => _resolvingMapTapAddress = false);
+        _refreshMapPicker();
+      }
+    }
+  }
+
+  Future<void> _moveMapToArea(
+    PlaceSuggestion suggestion,
+    String sessionToken,
+  ) async {
+    try {
+      final area = await widget.authController.apiClient.fetchPlaceArea(
+        suggestion.id,
+        sessionToken: sessionToken,
+      );
+      if (!mounted) {
+        return;
+      }
+      if (area.latitude == 0 && area.longitude == 0) {
+        _showMessage('Non riesco a trovare questa zona sulla mappa.');
+        return;
+      }
+      final target = LatLng(area.latitude, area.longitude);
+      setState(() {
+        _currentMapCenter = target;
+        _mapDraftSelection = null;
+      });
+      _refreshMapPicker();
+      final controller = _mapController;
+      if (controller != null && area.hasViewport) {
+        await controller.animateCamera(
+          CameraUpdate.newLatLngBounds(
+            LatLngBounds(
+              southwest: LatLng(area.south!, area.west!),
+              northeast: LatLng(area.north!, area.east!),
+            ),
+            32,
+          ),
+        );
+        // Una citta intera e troppo larga: avviciniamo fino a vedere i quartieri.
+        final zoom = await controller.getZoomLevel();
+        if (zoom < 13) {
+          await _animateMapTo(target, zoom: 13);
+        }
+      } else {
+        await _animateMapTo(target, zoom: 14.5);
+      }
+      await _refreshNearbyPlaces(force: true);
+    } catch (_) {
+      if (mounted) {
+        _showMessage('Non riesco a spostare la mappa su questa zona. Riprova.');
+      }
+    }
+  }
+
   Future<void> _handlePlaceTap(PlaceCandidate place) async {
     if (_submitting) {
       return;
@@ -1165,6 +1431,10 @@ class _CreateOfferPageState extends State<CreateOfferPage> {
   }
 
   Future<void> _handleMapTap(LatLng target) async {
+    if (_placeSearchOpen) {
+      _closePlaceSearch();
+      return;
+    }
     if (_submitting || _loadingNearbyPlaces || _resolvingMapTapAddress) {
       return;
     }
@@ -1229,7 +1499,7 @@ class _CreateOfferPageState extends State<CreateOfferPage> {
 
     if (!_isManualAddressPlaceId(place.id) &&
         place.id.isNotEmpty &&
-        (place.address.trim().isEmpty || place.phoneNumber.trim().isEmpty)) {
+        !place.detailsLoaded) {
       await _hydrateDraftPlaceDetails(place);
     }
   }
@@ -1244,18 +1514,7 @@ class _CreateOfferPageState extends State<CreateOfferPage> {
       }
 
       setState(() {
-        _mapDraftSelection = PlaceCandidate(
-          id: place.id,
-          name: details.name.isEmpty ? place.name : details.name,
-          address: details.address.isEmpty ? place.address : details.address,
-          latitude: details.latitude != 0 ? details.latitude : place.latitude,
-          longitude:
-              details.longitude != 0 ? details.longitude : place.longitude,
-          primaryType: details.primaryType.isEmpty
-              ? place.primaryType
-              : details.primaryType,
-          phoneNumber: details.phoneNumber,
-        );
+        _mapDraftSelection = place.mergeDetails(details);
         if (details.latitude != 0 && details.longitude != 0) {
           _currentMapCenter = LatLng(details.latitude, details.longitude);
         }
@@ -1323,6 +1582,14 @@ class _CreateOfferPageState extends State<CreateOfferPage> {
     if (_selectedLatitude == null || _selectedLongitude == null) {
       return null;
     }
+    final confirmed = _confirmedPlace;
+    if (confirmed != null &&
+        confirmed.id == _selectedPlaceId &&
+        confirmed.name.trim() == _localeController.text.trim() &&
+        confirmed.address.trim() == _addressController.text.trim()) {
+      // Riaprendo la mappa si rivedono anche voto, prezzo e foto del locale.
+      return confirmed;
+    }
     return PlaceCandidate(
       id: _selectedPlaceId ?? 'selected_offer_location',
       name: _localeController.text.trim().isEmpty
@@ -1350,7 +1617,7 @@ class _CreateOfferPageState extends State<CreateOfferPage> {
 
     if (!_isManualAddressPlaceId(place.id) &&
         place.id.isNotEmpty &&
-        place.phoneNumber.trim().isEmpty) {
+        !place.detailsLoaded) {
       setState(() => _resolvingMapTapAddress = true);
       try {
         await _hydrateDraftPlaceDetails(place);
@@ -1373,6 +1640,8 @@ class _CreateOfferPageState extends State<CreateOfferPage> {
     }
 
     setState(() {
+      _confirmedPlace =
+          _isManualAddressPlaceId(confirmedPlace.id) ? null : confirmedPlace;
       _selectedPlaceId = confirmedPlace.id;
       _selectedLatitude = confirmedPlace.latitude;
       _selectedLongitude = confirmedPlace.longitude;
@@ -2177,6 +2446,7 @@ class _SelectedPlacePreviewCard extends StatelessWidget {
     final subtitleText = isManualAddress
         ? 'Indirizzo selezionato'
         : (place.address.trim().isEmpty ? 'Locale selezionato' : place.address);
+    final hasPhoto = !isManualAddress && place.photoUrl.isNotEmpty;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -2199,26 +2469,58 @@ class _SelectedPlacePreviewCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            titleText,
-            maxLines: isManualAddress ? 3 : 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w900,
-              color: AppTheme.espresso,
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (hasPhoto) ...[
+                PlacePhotoThumb(url: place.photoUrl, size: 60),
+                const SizedBox(width: 12),
+              ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      titleText,
+                      maxLines: isManualAddress ? 3 : 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.espresso,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitleText,
+                      maxLines: hasPhoto ? 2 : 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AppTheme.brown.withValues(alpha: 0.74),
+                        fontWeight: FontWeight.w700,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            subtitleText,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: AppTheme.brown.withValues(alpha: 0.74),
-              fontWeight: FontWeight.w700,
-              height: 1.3,
+          if (!isManualAddress && place.hasGoogleExtras) ...[
+            const SizedBox(height: 10),
+            PlaceGoogleInfoRow(place: place),
+          ],
+          if (hasPhoto && place.photoAuthor.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              'Foto: ${place.photoAuthor} su Google',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: AppTheme.lavanda,
+              ),
             ),
-          ),
+          ],
           const SizedBox(height: 10),
           Align(
             alignment: Alignment.centerRight,

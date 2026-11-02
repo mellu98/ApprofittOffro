@@ -35,7 +35,7 @@ from flask import (
     session,
     abort,
 )
-from sqlalchemy import or_
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import selectinload
 from flask_login import (
     LoginManager,
@@ -48,6 +48,7 @@ from functools import wraps
 from werkzeug.utils import secure_filename
 from PIL import Image, ImageDraw
 
+from geo import bounding_box, calculate_distance
 from models import (
     db,
     User,
@@ -1011,9 +1012,15 @@ def get_nearby_active_push_users(offer, *, radius_km=20, excluded_user_ids=None)
             User.photo_moderation_status == MODERATION_STATUS_APPROVED,
             DevicePushToken.active.is_(True),
         )
-        .order_by(User.nome.asc())
-        .all()
     )
+    search_box = bounding_box(offer.latitudine, offer.longitudine, radius_km)
+    if search_box is not None:
+        lat_min, lat_max, lon_min, lon_max = search_box
+        candidates = candidates.filter(
+            User.latitudine.between(lat_min, lat_max),
+            User.longitudine.between(lon_min, lon_max),
+        )
+    candidates = candidates.order_by(User.nome.asc()).all()
 
     nearby_users = []
     seen_ids = set()
@@ -6211,272 +6218,10 @@ def request_entity_too_large(error):
     return jsonify({"success": False, "errors": ["Le foto sono troppo pesanti (Max 64MB complessivi). Compressione fallita."]}), 413
 
 
-def google_places_enabled():
-    return bool(app.config.get("GOOGLE_PLACES_API_KEY"))
+# Locali Google Places (mappa, ricerca, dettagli): vedi places.py.
+from places import places_bp  # noqa: E402
 
-
-GOOGLE_PLACES_ALLOWED_PRIMARY_TYPES = {
-    "restaurant",
-    "cafe",
-    "bar",
-    "bakery",
-    "meal_takeaway",
-    "pizza_restaurant",
-    "coffee_shop",
-    "fast_food_restaurant",
-    "brunch_restaurant",
-    "sandwich_shop",
-}
-
-GOOGLE_PLACES_INCLUDED_TYPE_GROUPS = (
-    (
-        "restaurant",
-        "pizza_restaurant",
-        "brunch_restaurant",
-        "fast_food_restaurant",
-    ),
-    (
-        "cafe",
-        "coffee_shop",
-        "bakery",
-        "sandwich_shop",
-    ),
-    (
-        "bar",
-        "meal_takeaway",
-    ),
-)
-
-GOOGLE_PLACES_EXCLUDED_PRIMARY_TYPES = {
-    "shopping_mall",
-    "supermarket",
-    "grocery_store",
-    "convenience_store",
-    "market",
-    "store",
-    "department_store",
-}
-
-GOOGLE_PLACES_EXCLUDED_KEYWORDS = (
-    "centro commerciale",
-    "shopping center",
-    "shopping mall",
-    "supermercato",
-    "ipermercato",
-    "minimarket",
-    "market",
-    "iper ",
-)
-
-
-def is_google_place_relevant(place_name, place_address, primary_type):
-    """Filtra solo i locali coerenti con colazione, pranzo e cena."""
-    normalized_type = (primary_type or "").strip().lower()
-    normalized_name = (place_name or "").strip().lower()
-    normalized_address = (place_address or "").strip().lower()
-    haystack = f"{normalized_name} {normalized_address}"
-
-    if normalized_type in GOOGLE_PLACES_EXCLUDED_PRIMARY_TYPES:
-        return False
-
-    if any(keyword in haystack for keyword in GOOGLE_PLACES_EXCLUDED_KEYWORDS):
-        return False
-
-    if normalized_type in GOOGLE_PLACES_ALLOWED_PRIMARY_TYPES:
-        return True
-
-    # Fallback prudente: alcuni locali buoni arrivano con type generico ma nome parlante.
-    useful_keywords = (
-        "ristor",
-        "pizzer",
-        "pizza",
-        "bar",
-        "pub",
-        "caff",
-        "cafeter",
-        "brunch",
-        "oster",
-        "trattor",
-        "bistrot",
-        "bakery",
-    )
-    return any(keyword in haystack for keyword in useful_keywords)
-
-
-def _google_places_nearby_request(latitude, longitude, radius, included_types, max_results):
-    api_key = app.config.get("GOOGLE_PLACES_API_KEY", "").strip()
-    if not api_key:
-        raise RuntimeError("Google Places non configurato.")
-
-    request_url = "https://places.googleapis.com/v1/places:searchNearby"
-    request_payload = {
-        "includedTypes": list(included_types),
-        "excludedTypes": [
-            "shopping_mall",
-            "supermarket",
-            "grocery_store",
-            "market",
-            "department_store",
-            "convenience_store",
-        ],
-        "maxResultCount": max(1, min(int(max_results), 20)),
-        "locationRestriction": {
-            "circle": {
-                "center": {
-                    "latitude": float(latitude),
-                    "longitude": float(longitude),
-                },
-                "radius": float(max(100, min(radius, 8000))),
-            }
-        },
-        "rankPreference": "DISTANCE",
-        "languageCode": "it",
-        "regionCode": "IT",
-    }
-    req = Request(
-        request_url,
-        data=json.dumps(request_payload).encode("utf-8"),
-        headers={
-            "Content-Type": "application/json",
-            "X-Goog-Api-Key": api_key,
-            "X-Goog-FieldMask": ",".join([
-                "places.id",
-                "places.displayName",
-                "places.formattedAddress",
-                "places.location",
-                "places.primaryType",
-            ]),
-        },
-        method="POST",
-    )
-
-    try:
-        with urlopen(req, timeout=12) as response:
-            payload = json.loads(response.read().decode("utf-8"))
-    except HTTPError as exc:
-        details = exc.read().decode("utf-8", errors="ignore")
-        raise RuntimeError(f"Google Places HTTP {exc.code}: {details}") from exc
-    except URLError as exc:
-        raise RuntimeError(f"Google Places non raggiungibile: {exc}") from exc
-
-    return payload.get("places", [])
-
-
-def search_google_nearby_places(latitude, longitude, radius=7000, max_results=36):
-    """Cerca locali vicini tramite Google Places API (New)."""
-    places_by_id = {}
-    last_error = None
-
-    for included_types in GOOGLE_PLACES_INCLUDED_TYPE_GROUPS:
-        try:
-            raw_places = _google_places_nearby_request(
-                latitude,
-                longitude,
-                radius=radius,
-                included_types=included_types,
-                max_results=max_results,
-            )
-        except Exception as exc:
-            print(f"[GOOGLE_PLACES_GROUP_ERROR] types={included_types} error={exc}")
-            last_error = exc
-            continue
-        for place in raw_places:
-            location = place.get("location") or {}
-            display_name = place.get("displayName") or {}
-            lat = location.get("latitude")
-            lon = location.get("longitude")
-            if lat is None or lon is None:
-                continue
-            place_name = display_name.get("text", "").strip()
-            place_address = (place.get("formattedAddress") or "").strip()
-            primary_type = (place.get("primaryType") or "").strip()
-            if not is_google_place_relevant(place_name, place_address, primary_type):
-                continue
-            place_id = (place.get("id") or "").strip()
-            if not place_id or place_id in places_by_id:
-                continue
-            places_by_id[place_id] = {
-                "id": place_id,
-                "name": place_name,
-                "address": place_address,
-                "latitude": float(lat),
-                "longitude": float(lon),
-                "primary_type": primary_type,
-                "_distance_km": calculate_distance(
-                    float(latitude),
-                    float(longitude),
-                    float(lat),
-                    float(lon),
-                ),
-            }
-
-    places = []
-    for place in sorted(
-        places_by_id.values(),
-        key=lambda item: (item["_distance_km"], item["name"].lower()),
-    ):
-        normalized_place = dict(place)
-        normalized_place.pop("_distance_km", None)
-        places.append(normalized_place)
-        if len(places) >= max(1, min(int(max_results), 60)):
-            break
-
-    if not places and last_error is not None:
-        raise last_error
-
-    return places
-
-
-def get_google_place_details(place_id):
-    """Recupera dettagli mirati del locale selezionato."""
-    api_key = app.config.get("GOOGLE_PLACES_API_KEY", "").strip()
-    if not api_key:
-        raise RuntimeError("Google Places non configurato.")
-
-    safe_place_id = quote(place_id.strip(), safe="")
-    request_url = f"https://places.googleapis.com/v1/places/{safe_place_id}"
-    req = Request(
-        request_url,
-        headers={
-            "X-Goog-Api-Key": api_key,
-            "X-Goog-FieldMask": ",".join(
-                [
-                    "id",
-                    "displayName",
-                    "formattedAddress",
-                    "location",
-                    "primaryType",
-                    "nationalPhoneNumber",
-                    "internationalPhoneNumber",
-                ]
-            ),
-        },
-        method="GET",
-    )
-
-    try:
-        with urlopen(req, timeout=12) as response:
-            payload = json.loads(response.read().decode("utf-8"))
-    except HTTPError as exc:
-        details = exc.read().decode("utf-8", errors="ignore")
-        raise RuntimeError(f"Google Places HTTP {exc.code}: {details}") from exc
-    except URLError as exc:
-        raise RuntimeError(f"Google Places non raggiungibile: {exc}") from exc
-
-    location = payload.get("location") or {}
-    display_name = payload.get("displayName") or {}
-    return {
-        "id": payload.get("id", ""),
-        "name": display_name.get("text", "").strip(),
-        "address": (payload.get("formattedAddress") or "").strip(),
-        "latitude": float(location.get("latitude") or 0),
-        "longitude": float(location.get("longitude") or 0),
-        "primary_type": (payload.get("primaryType") or "").strip(),
-        "phone_number": (
-            (payload.get("nationalPhoneNumber") or "").strip()
-            or (payload.get("internationalPhoneNumber") or "").strip()
-        ),
-    }
+app.register_blueprint(places_bp)
 
 
 @app.route("/api/geocode")
@@ -6529,94 +6274,6 @@ def api_geocode():
         pass
     
     return jsonify({"address": "Posizione Mappa"})
-
-
-@app.route("/api/places/nearby", methods=["GET"])
-@login_required
-def api_places_nearby():
-    """Restituisce locali Google Places vicini al punto richiesto."""
-    lat = request.args.get("lat", "").strip()
-    lon = request.args.get("lon", "").strip()
-    radius = request.args.get("radius", "7000").strip()
-    max_results = request.args.get("max_results", "36").strip()
-
-    if not google_places_enabled():
-        return jsonify({
-            "success": False,
-            "error": "Google Places non configurato su questo ambiente.",
-        }), 503
-
-    try:
-        latitude = float(lat.replace(",", "."))
-        longitude = float(lon.replace(",", "."))
-        radius_m = int(float(radius.replace(",", ".")))
-        max_results_value = int(float(max_results.replace(",", ".")))
-    except ValueError:
-        return jsonify({
-            "success": False,
-            "error": "Coordinate, raggio o numero risultati non validi.",
-        }), 400
-
-    try:
-        places = search_google_nearby_places(
-            latitude,
-            longitude,
-            radius=radius_m,
-            max_results=max_results_value,
-        )
-    except Exception as exc:
-        print(f"[GOOGLE_PLACES_ERROR] {exc}")
-        return jsonify({
-            "success": False,
-            "error": "Impossibile recuperare i locali vicini in questo momento.",
-        }), 502
-
-    return jsonify({
-        "success": True,
-        "places": places,
-    })
-
-
-@app.route("/api/places/<path:place_id>", methods=["GET"])
-@login_required
-def api_place_details(place_id):
-    """Restituisce i dettagli essenziali del locale Google selezionato."""
-    if not google_places_enabled():
-        return jsonify({
-            "success": False,
-            "error": "Google Places non configurato su questo ambiente.",
-        }), 503
-
-    safe_place_id = (place_id or "").strip()
-    if not safe_place_id:
-        return jsonify({
-            "success": False,
-            "error": "Identificativo locale mancante.",
-        }), 400
-
-    try:
-        place = get_google_place_details(safe_place_id)
-    except Exception as exc:
-        print(f"[GOOGLE_PLACE_DETAILS_ERROR] {exc}")
-        return jsonify({
-            "success": False,
-            "error": str(exc),
-        }), 502
-
-    if not is_google_place_relevant(
-        place.get("name"),
-        place.get("address"),
-        place.get("primary_type"),
-    ):
-        return jsonify({
-            "success": False,
-            "error": "Seleziona solo bar, ristoranti, pizzerie o pub.",
-        }), 422
-
-    return jsonify({
-        "success": True,
-        "place": place,
-    })
 
 
 @app.route("/api/register", methods=["POST"])
@@ -6910,25 +6567,8 @@ def api_get_offers():
     limit_str = request.args.get("limit", "").strip()
     now = local_now()
     threshold = now - timedelta(hours=3)
-    query = Offer.query.options(
-        selectinload(Offer.autore).selectinload(User.photos),
-        selectinload(Offer.photos),
-        selectinload(Offer.claims).selectinload(Claim.utente).selectinload(User.photos),
-    ).filter(
-        Offer.stato.in_(["attiva", "completata"]),
-        Offer.data_ora > threshold,
-    )
 
-    if tipo:
-        query = query.filter(Offer.tipo_pasto == tipo)
-
-    offers = query.order_by(Offer.data_ora.asc()).all()
-    offers, _visibility_stats = filter_visible_offers_and_notify_empty_started_hosts(
-        offers,
-        now=now,
-    )
-
-    # Applica filtro per Raggio se specificato
+    # Raggio richiesto (o quello del profilo); 999 o piu significa "nessun limite".
     radius_km = None
     if radius_str:
         try:
@@ -6960,7 +6600,7 @@ def api_get_offers():
     else:
         search_lat = 41.9
         search_lon = 12.5
-    
+
     req_lat = request.args.get("lat")
     req_lon = request.args.get("lon")
     if req_lat and req_lon:
@@ -6969,6 +6609,38 @@ def api_get_offers():
             search_lon = float(req_lon)
         except ValueError:
             pass
+
+    query = Offer.query.options(
+        selectinload(Offer.autore).selectinload(User.photos),
+        selectinload(Offer.photos),
+        selectinload(Offer.claims).selectinload(Claim.utente).selectinload(User.photos),
+    ).filter(
+        Offer.stato.in_(["attiva", "completata"]),
+        Offer.data_ora > threshold,
+    )
+
+    if tipo:
+        query = query.filter(Offer.tipo_pasto == tipo)
+
+    # Il database scarta subito gli eventi fuori dal riquadro del raggio; la distanza
+    # esatta si controlla dopo. I propri eventi restano sempre (promemoria di gestione).
+    search_box = bounding_box(search_lat, search_lon, radius_km) if radius_km is not None else None
+    if search_box is not None:
+        lat_min, lat_max, lon_min, lon_max = search_box
+        in_box = and_(
+            Offer.latitudine.between(lat_min, lat_max),
+            Offer.longitudine.between(lon_min, lon_max),
+        )
+        if current_user.is_authenticated:
+            query = query.filter(or_(in_box, Offer.user_id == current_user.id))
+        else:
+            query = query.filter(in_box)
+
+    offers = query.order_by(Offer.data_ora.asc()).all()
+    offers, _visibility_stats = filter_visible_offers_and_notify_empty_started_hosts(
+        offers,
+        now=now,
+    )
 
     result = []
     for o in offers:
@@ -8007,6 +7679,13 @@ def api_unclaim(claim_id):
         db.session.delete(claim)
         db.session.commit()
         return jsonify({"success": True, "message": "Richiesta annullata con successo."})
+    if claim.status == CLAIM_STATUS_REJECTED:
+        # Una richiesta rifiutata non ha mai occupato un posto: cancellarla
+        # libererebbe un posto inesistente e permetterebbe di richiedere di nuovo.
+        return jsonify({
+            "success": False,
+            "error": "Questa richiesta non è stata accettata: puoi solo nasconderla dal feed.",
+        }), 400
 
     data_formattata = offer.data_ora.strftime('%d/%m/%Y alle %H:%M')
 
@@ -8068,20 +7747,7 @@ def api_unclaim(claim_id):
 # MATEMATICA E GEOLOCALIZZAZIONE
 # ===================================================================
 
-def calculate_distance(lat1, lon1, lat2, lon2):
-    """Calcola la distanza in km tra due coordinate GPS usando la formula di Haversine."""
-    R = 6371.0 # Raggio della Terra in km
-    lat1_rad = math.radians(lat1)
-    lon1_rad = math.radians(lon1)
-    lat2_rad = math.radians(lat2)
-    lon2_rad = math.radians(lon2)
-
-    dlon = lon2_rad - lon1_rad
-    dlat = lat2_rad - lat1_rad
-
-    a = math.sin(dlat / 2)**2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon / 2)**2
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    return R * c
+# calculate_distance e bounding_box stanno in geo.py (importati in cima al file).
 
 
 def utc_now_naive():
