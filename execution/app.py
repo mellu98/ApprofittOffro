@@ -8352,6 +8352,13 @@ def api_unclaim(claim_id):
         db.session.delete(claim)
         db.session.commit()
         return jsonify({"success": True, "message": "Richiesta annullata con successo."})
+    if claim.status == CLAIM_STATUS_REJECTED:
+        # Una richiesta rifiutata non ha mai occupato un posto: cancellarla
+        # libererebbe un posto inesistente e permetterebbe di richiedere di nuovo.
+        return jsonify({
+            "success": False,
+            "error": "Questa richiesta non è stata accettata: puoi solo nasconderla dal feed.",
+        }), 400
 
     data_formattata = offer.data_ora.strftime('%d/%m/%Y alle %H:%M')
 
