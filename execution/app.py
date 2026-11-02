@@ -35,7 +35,7 @@ from flask import (
     session,
     abort,
 )
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, text
 from sqlalchemy.orm import selectinload
 from flask_login import (
     LoginManager,
@@ -4907,6 +4907,18 @@ def index():
 @app.route("/favicon.ico")
 def favicon():
     return redirect(url_for("static", filename="favicon.ico"))
+
+
+@app.route("/healthz")
+def healthz():
+    """Controllo per l'hosting: l'app risponde e il database e' raggiungibile."""
+    try:
+        db.session.execute(text("SELECT 1"))
+    except Exception as exc:
+        print(f"[HEALTHZ_DB_ERROR] {exc}")
+        db.session.rollback()
+        return jsonify({"ok": False, "database": False}), 503
+    return jsonify({"ok": True, "database": True})
 
 
 @app.route("/register")
