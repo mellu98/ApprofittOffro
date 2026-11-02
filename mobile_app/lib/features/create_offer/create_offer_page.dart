@@ -84,6 +84,7 @@ class _CreateOfferPageState extends State<CreateOfferPage> {
   String? _selectedPlaceId;
   String _selectedPrimaryType = '';
   PlaceCandidate? _mapDraftSelection;
+  PlaceCandidate? _confirmedPlace;
   List<PlaceCandidate> _nearbyPlaces = const [];
   Set<Marker> _nearbyMarkers = const <Marker>{};
   final Map<String, BitmapDescriptor> _markerIconCache = {};
@@ -1581,6 +1582,14 @@ class _CreateOfferPageState extends State<CreateOfferPage> {
     if (_selectedLatitude == null || _selectedLongitude == null) {
       return null;
     }
+    final confirmed = _confirmedPlace;
+    if (confirmed != null &&
+        confirmed.id == _selectedPlaceId &&
+        confirmed.name.trim() == _localeController.text.trim() &&
+        confirmed.address.trim() == _addressController.text.trim()) {
+      // Riaprendo la mappa si rivedono anche voto, prezzo e foto del locale.
+      return confirmed;
+    }
     return PlaceCandidate(
       id: _selectedPlaceId ?? 'selected_offer_location',
       name: _localeController.text.trim().isEmpty
@@ -1631,6 +1640,8 @@ class _CreateOfferPageState extends State<CreateOfferPage> {
     }
 
     setState(() {
+      _confirmedPlace =
+          _isManualAddressPlaceId(confirmedPlace.id) ? null : confirmedPlace;
       _selectedPlaceId = confirmedPlace.id;
       _selectedLatitude = confirmedPlace.latitude;
       _selectedLongitude = confirmedPlace.longitude;
