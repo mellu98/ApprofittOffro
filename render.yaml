@@ -1,37 +1,31 @@
-services:
-  - type: web
-    name: approfittoffro
-    env: python
-    plan: starter
-    buildCommand: pip install -r requirements.txt
-    startCommand: cd execution && gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 120
+# Render Blueprint: web + promemoria push + Postgres, tutto a Francoforte.
+# Crea tutto da Render: New > Blueprint > questo repo (branch main).
+# I valori con "sync: false" li chiede Render alla creazione: non vanno mai nel repo (e' pubblico).
+
+databases:
+  - name: approfittoffro-db
+    plan: basic-256mb
+    region: frankfurt
+    databaseName: approfittoffro
+    user: approfittoffro
+    postgresMajorVersion: "16"
+
+envVarGroups:
+  - name: approfittoffro-config
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.11
-      - key: SECRET_KEY
-        generateValue: true
-      - key: DATABASE_URL
-        sync: false
       - key: APP_TIMEZONE
         value: Europe/Rome
+      - key: PUBLIC_SITE_BASE_URL
+        value: https://approfittoffro.it
+      - key: SECRET_KEY
+        generateValue: true
+      # Foto e allegati su Cloudflare R2 (il disco di Render si azzera a ogni deploy)
       - key: APP_STORAGE_BACKEND
         value: r2
       - key: APP_UPLOAD_FOLDER
         value: /tmp/approfittoffro-uploads
-      - key: MAIL_USERNAME
-        sync: false
-      - key: MAIL_PASSWORD
-        sync: false
-      - key: MAIL_DEFAULT_SENDER
-        sync: false
-      - key: EMAIL_PROVIDER
-        sync: false
-      - key: RESEND_API_KEY
-        sync: false
-      - key: RESEND_REPLY_TO
-        sync: false
-      - key: ADMIN_EMAIL
-        sync: false
       - key: R2_ACCOUNT_ID
         sync: false
       - key: R2_ACCESS_KEY_ID
@@ -42,3 +36,65 @@ services:
         sync: false
       - key: R2_ENDPOINT_URL
         sync: false
+      # Email: Resend (auto = Resend se c'e' la chiave, altrimenti SMTP)
+      - key: EMAIL_PROVIDER
+        value: auto
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_REPLY_TO
+        sync: false
+      - key: MAIL_DEFAULT_SENDER
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      # Google: locali sulla mappa, accesso con Google
+      - key: GOOGLE_PLACES_API_KEY
+        sync: false
+      - key: GOOGLE_OAUTH_CLIENT_IDS
+        sync: false
+      # Notifiche push (Firebase): JSON dell'account di servizio su una riga
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false
+      # Moderazione automatica di testi e foto
+      - key: OPENAI_API_KEY
+        sync: false
+
+services:
+  - type: web
+    name: approfittoffro
+    runtime: python
+    plan: starter
+    region: frankfurt
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: cd execution && gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 120
+    healthCheckPath: /healthz
+    domains:
+      - approfittoffro.it
+      - www.approfittoffro.it
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: approfittoffro-db
+          property: connectionString
+      - fromGroup: approfittoffro-config
+
+  # Promemoria push (evento imminente, recensione da lasciare): ogni 15 minuti.
+  # Lo script manda ogni promemoria una sola volta per destinatario.
+  - type: cron
+    name: approfittoffro-promemoria
+    runtime: python
+    plan: starter
+    region: frankfurt
+    branch: main
+    schedule: "*/15 * * * *"
+    buildCommand: pip install -r requirements.txt
+    startCommand: cd execution && python send_scheduled_push_reminders.py
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: approfittoffro-db
+          property: connectionString
+      - fromGroup: approfittoffro-config
