@@ -167,6 +167,9 @@ app.config["SQLALCHEMY_DATABASE_URI"] = normalize_database_url(
     os.getenv("DATABASE_URL")
 ) or ("sqlite:///" + SQLITE_PATH)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+if not app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite:"):
+    # Scarta le connessioni cadute (riavvii/manutenzione del Postgres gestito) prima di usarle.
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True, "pool_recycle": 300}
 app.config["MAX_CONTENT_LENGTH"] = 128 * 1024 * 1024  # 128 MB max upload
 app.config["UPLOAD_STORAGE_BACKEND"] = os.getenv("APP_STORAGE_BACKEND", "local").strip().lower()
 app.config["R2_ACCOUNT_ID"] = os.getenv("R2_ACCOUNT_ID", "")
