@@ -36,6 +36,7 @@ if EXECUTION not in sys.path:
     sys.path.insert(0, EXECUTION)
 
 import app as app_module  # noqa: E402
+import places as places_module  # noqa: E402
 from models import (  # noqa: E402
     CLAIM_STATUS_ACCEPTED,
     LEGAL_PRIVACY_VERSION,
@@ -82,6 +83,7 @@ def isolated_app(monkeypatch):
         lambda _input: ({"results": [{"flagged": False, "category_scores": {}}]}, None),
     )
     monkeypatch.setattr(app_module, "urlopen", _NoNetwork())
+    monkeypatch.setattr(places_module, "urlopen", _NoNetwork())
 
     with flask_app.app_context():
         db.session.remove()

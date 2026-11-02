@@ -5,6 +5,7 @@ import json
 import pytest
 
 import app as app_module
+import places as places_module
 
 
 class FakeResponse(io.BytesIO):
@@ -42,7 +43,7 @@ class FakeGoogle:
 @pytest.fixture
 def google(monkeypatch):
     fake = FakeGoogle()
-    monkeypatch.setattr(app_module, "urlopen", fake)
+    monkeypatch.setattr(places_module, "urlopen", fake)
     app_module.app.config["GOOGLE_PLACES_API_KEY"] = "test-key"
     return fake
 
@@ -63,7 +64,7 @@ def place(pid, name, ptype, lat=45.4642, lon=9.19):
 
 
 def test_food_types_include_specific_restaurants():
-    f = app_module.is_google_food_place_type
+    f = places_module.is_google_food_place_type
     assert f("italian_restaurant")
     assert f("sushi_restaurant")
     assert f("wine_bar")
@@ -71,7 +72,7 @@ def test_food_types_include_specific_restaurants():
     assert not f("barber_shop")
     assert not f("supermarket")
     # Prima "Da Gigi" (italian_restaurant) veniva scartato perche il nome non conteneva parole chiave.
-    assert app_module.is_google_place_relevant("Da Gigi", "Via Roma 1, Milano", "italian_restaurant")
+    assert places_module.is_google_place_relevant("Da Gigi", "Via Roma 1, Milano", "italian_restaurant")
 
 
 def test_nearby_uses_popularity_and_interleaves_groups(google, client):
@@ -189,7 +190,7 @@ def test_details_without_photo_or_rating(google, client):
 
 def test_details_photo_failure_is_not_fatal(google, client):
     def broken(_body):
-        raise app_module.HTTPError("u", 403, "no", {}, io.BytesIO(b"denied"))
+        raise places_module.HTTPError("u", 403, "no", {}, io.BytesIO(b"denied"))
 
     google.routes.append(("/media", broken))
     google.add("places/p3", {**place("p3", "Pizzeria Uno", "pizza_restaurant"),
