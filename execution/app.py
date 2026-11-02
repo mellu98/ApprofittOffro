@@ -35,7 +35,7 @@ from flask import (
     session,
     abort,
 )
-from sqlalchemy import or_
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import selectinload
 from flask_login import (
     LoginManager,
@@ -48,6 +48,7 @@ from functools import wraps
 from werkzeug.utils import secure_filename
 from PIL import Image, ImageDraw
 
+from geo import bounding_box, calculate_distance
 from models import (
     db,
     User,
@@ -1011,9 +1012,15 @@ def get_nearby_active_push_users(offer, *, radius_km=20, excluded_user_ids=None)
             User.photo_moderation_status == MODERATION_STATUS_APPROVED,
             DevicePushToken.active.is_(True),
         )
-        .order_by(User.nome.asc())
-        .all()
     )
+    search_box = bounding_box(offer.latitudine, offer.longitudine, radius_km)
+    if search_box is not None:
+        lat_min, lat_max, lon_min, lon_max = search_box
+        candidates = candidates.filter(
+            User.latitudine.between(lat_min, lat_max),
+            User.longitudine.between(lon_min, lon_max),
+        )
+    candidates = candidates.order_by(User.nome.asc()).all()
 
     nearby_users = []
     seen_ids = set()
@@ -7255,25 +7262,8 @@ def api_get_offers():
     limit_str = request.args.get("limit", "").strip()
     now = local_now()
     threshold = now - timedelta(hours=3)
-    query = Offer.query.options(
-        selectinload(Offer.autore).selectinload(User.photos),
-        selectinload(Offer.photos),
-        selectinload(Offer.claims).selectinload(Claim.utente).selectinload(User.photos),
-    ).filter(
-        Offer.stato.in_(["attiva", "completata"]),
-        Offer.data_ora > threshold,
-    )
 
-    if tipo:
-        query = query.filter(Offer.tipo_pasto == tipo)
-
-    offers = query.order_by(Offer.data_ora.asc()).all()
-    offers, _visibility_stats = filter_visible_offers_and_notify_empty_started_hosts(
-        offers,
-        now=now,
-    )
-
-    # Applica filtro per Raggio se specificato
+    # Raggio richiesto (o quello del profilo); 999 o piu significa "nessun limite".
     radius_km = None
     if radius_str:
         try:
@@ -7305,7 +7295,7 @@ def api_get_offers():
     else:
         search_lat = 41.9
         search_lon = 12.5
-    
+
     req_lat = request.args.get("lat")
     req_lon = request.args.get("lon")
     if req_lat and req_lon:
@@ -7314,6 +7304,38 @@ def api_get_offers():
             search_lon = float(req_lon)
         except ValueError:
             pass
+
+    query = Offer.query.options(
+        selectinload(Offer.autore).selectinload(User.photos),
+        selectinload(Offer.photos),
+        selectinload(Offer.claims).selectinload(Claim.utente).selectinload(User.photos),
+    ).filter(
+        Offer.stato.in_(["attiva", "completata"]),
+        Offer.data_ora > threshold,
+    )
+
+    if tipo:
+        query = query.filter(Offer.tipo_pasto == tipo)
+
+    # Il database scarta subito gli eventi fuori dal riquadro del raggio; la distanza
+    # esatta si controlla dopo. I propri eventi restano sempre (promemoria di gestione).
+    search_box = bounding_box(search_lat, search_lon, radius_km) if radius_km is not None else None
+    if search_box is not None:
+        lat_min, lat_max, lon_min, lon_max = search_box
+        in_box = and_(
+            Offer.latitudine.between(lat_min, lat_max),
+            Offer.longitudine.between(lon_min, lon_max),
+        )
+        if current_user.is_authenticated:
+            query = query.filter(or_(in_box, Offer.user_id == current_user.id))
+        else:
+            query = query.filter(in_box)
+
+    offers = query.order_by(Offer.data_ora.asc()).all()
+    offers, _visibility_stats = filter_visible_offers_and_notify_empty_started_hosts(
+        offers,
+        now=now,
+    )
 
     result = []
     for o in offers:
@@ -8420,20 +8442,7 @@ def api_unclaim(claim_id):
 # MATEMATICA E GEOLOCALIZZAZIONE
 # ===================================================================
 
-def calculate_distance(lat1, lon1, lat2, lon2):
-    """Calcola la distanza in km tra due coordinate GPS usando la formula di Haversine."""
-    R = 6371.0 # Raggio della Terra in km
-    lat1_rad = math.radians(lat1)
-    lon1_rad = math.radians(lon1)
-    lat2_rad = math.radians(lat2)
-    lon2_rad = math.radians(lon2)
-
-    dlon = lon2_rad - lon1_rad
-    dlat = lat2_rad - lat1_rad
-
-    a = math.sin(dlat / 2)**2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon / 2)**2
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    return R * c
+# calculate_distance e bounding_box stanno in geo.py (importati in cima al file).
 
 
 def utc_now_naive():
