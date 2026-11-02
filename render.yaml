@@ -21,21 +21,6 @@ envVarGroups:
         value: https://approfittoffro.it
       - key: SECRET_KEY
         generateValue: true
-      # Foto e allegati su Cloudflare R2 (il disco di Render si azzera a ogni deploy)
-      - key: APP_STORAGE_BACKEND
-        value: r2
-      - key: APP_UPLOAD_FOLDER
-        value: /tmp/approfittoffro-uploads
-      - key: R2_ACCOUNT_ID
-        sync: false
-      - key: R2_ACCESS_KEY_ID
-        sync: false
-      - key: R2_SECRET_ACCESS_KEY
-        sync: false
-      - key: R2_BUCKET_NAME
-        sync: false
-      - key: R2_ENDPOINT_URL
-        sync: false
       # Email: Resend (auto = Resend se c'e' la chiave, altrimenti SMTP)
       - key: EMAIL_PROVIDER
         value: auto
@@ -74,11 +59,22 @@ services:
     domains:
       - approfittoffro.it
       - www.approfittoffro.it
+    # Foto e allegati su un disco persistente (il resto del filesystem si azzera a ogni deploy).
+    # Per passare a Cloudflare R2 piu avanti: APP_STORAGE_BACKEND=r2, le chiavi R2_* ed
+    # execution/migrate_uploads_to_r2.py per copiare i file esistenti.
+    disk:
+      name: uploads
+      mountPath: /var/data
+      sizeGB: 5
     envVars:
       - key: DATABASE_URL
         fromDatabase:
           name: approfittoffro-db
           property: connectionString
+      - key: APP_STORAGE_BACKEND
+        value: local
+      - key: APP_UPLOAD_FOLDER
+        value: /var/data/uploads
       - fromGroup: approfittoffro-config
 
   # Promemoria push (evento imminente, recensione da lasciare): ogni 15 minuti.
@@ -97,4 +93,9 @@ services:
         fromDatabase:
           name: approfittoffro-db
           property: connectionString
+      # Il cron non vede il disco del web e non salva file: cartella temporanea.
+      - key: APP_STORAGE_BACKEND
+        value: local
+      - key: APP_UPLOAD_FOLDER
+        value: /tmp/approfittoffro-uploads
       - fromGroup: approfittoffro-config
