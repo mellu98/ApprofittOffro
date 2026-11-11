@@ -774,21 +774,22 @@ def get_user_favorite_place_for_offer(user, offer):
     ).first()
 
 
-# Dati dell'host che escono solo a chi ha fatto l'accesso. Senza login (pagina
-# iniziale dell'app) restano nome e foto: età, gusti, intolleranze (dato sanitario)
-# e galleria no.
-PRIVATE_AUTHOR_FIELDS = (
+# Dati di un evento che escono solo a chi ha fatto l'accesso. Senza login (pagina
+# iniziale dell'app) restano nome e foto dell'host; età, gusti, intolleranze (dato
+# sanitario) e galleria dell'host e gli ospiti (nome e foto) no.
+LOGIN_ONLY_OFFER_FIELDS = (
     "autore_eta",
     "autore_cibi_preferiti",
     "autore_intolleranze",
     "autore_foto_gallery",
+    "partecipanti",
 )
 
 
-def strip_private_author_fields(payload, viewer):
-    """Toglie da un evento serializzato i dati privati dell'host se chi guarda non ha fatto l'accesso."""
+def strip_login_only_offer_fields(payload, viewer):
+    """Toglie da un evento serializzato i dati personali riservati a chi ha fatto l'accesso."""
     if not getattr(viewer, "is_authenticated", False):
-        for key in PRIVATE_AUTHOR_FIELDS:
+        for key in LOGIN_ONLY_OFFER_FIELDS:
             payload.pop(key, None)
     return payload
 
@@ -887,7 +888,7 @@ def serialize_mobile_offer(
         else None
     )
 
-    return strip_private_author_fields({
+    return strip_login_only_offer_fields({
         "id": offer.id,
         "tipo_pasto": offer.tipo_pasto,
         "nome_locale": offer.nome_locale,
@@ -6750,7 +6751,7 @@ def api_get_offers():
             else getattr(o, "foto_locale", "nessuna.jpg")
         )
 
-        result.append(strip_private_author_fields({
+        result.append(strip_login_only_offer_fields({
             "id": o.id,
             "tipo_pasto": o.tipo_pasto,
             "nome_locale": o.nome_locale,
