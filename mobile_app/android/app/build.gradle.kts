@@ -60,7 +60,7 @@ android {
         create("play") {
             dimension = "distribution"
             applicationId = "com.mellutecno.approfittoffro"
-            versionCode = 3048
+            versionCode = 3049
             ndk {
                 abiFilters.add("arm64-v8a")
             }
